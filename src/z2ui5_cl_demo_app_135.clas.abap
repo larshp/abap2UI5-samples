@@ -45,7 +45,8 @@ CLASS z2ui5_cl_demo_app_135 IMPLEMENTATION.
 
   METHOD z2ui5_display_popover.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
 
     popup = popup->message_popover(
               placement = `Top`
@@ -66,9 +67,11 @@ CLASS z2ui5_cl_demo_app_135 IMPLEMENTATION.
 
   METHOD z2ui5_display_view.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = view->_z2ui5( )->messaging( client->_bind_edit( mt_messaging )
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->_z2ui5( )->messaging( client->_bind_edit( mt_messaging )
         )->shell(
         )->page( class = `sapUiContentPadding `
             title          = 'abap2UI5 - Messaging'
@@ -146,7 +149,8 @@ CLASS z2ui5_cl_demo_app_135 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      DATA(view) = z2ui5_cl_xml_view=>factory( ).
+      DATA view TYPE REF TO z2ui5_cl_xml_view.
+      view = z2ui5_cl_xml_view=>factory( ).
       client->view_display(
         view->_generic( ns = `html` name = `script` )->_cc_plain_xml( z2ui5_cl_cc_messaging=>get_js( )
             )->_z2ui5( )->timer( client->_event( `ON_CC_LOADED` )
@@ -166,18 +170,20 @@ CLASS z2ui5_cl_demo_app_135 IMPLEMENTATION.
         client->view_model_update( ).
 
       WHEN `ADD_MSG`.
-        INSERT VALUE #(
-            message  = `this is a message`
-            type = `Error`
-            target = `testINPUT/value`
-         ) INTO TABLE mt_messaging.
+        DATA temp1 TYPE z2ui5_cl_cc_messaging=>ty_s_item.
+        CLEAR temp1.
+        temp1-message = `this is a message`.
+        temp1-type = `Error`.
+        temp1-target = `testINPUT/value`.
+        INSERT temp1 INTO TABLE mt_messaging.
         client->view_model_update( ).
 
       WHEN 'POPOVER_CLOSE'.
         client->message_toast_display( `POPOVER_CLOSE` ).
 
       WHEN 'BUTTON_SEND'.
-        DATA(lv_string) = `mt_messaging is filled with data`.
+        DATA lv_string TYPE string.
+        lv_string = `mt_messaging is filled with data`.
 
       WHEN 'POPOVER'.
         z2ui5_display_popover( `test` ).

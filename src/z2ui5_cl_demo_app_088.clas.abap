@@ -65,7 +65,11 @@ CLASS Z2UI5_CL_DEMO_APP_088 IMPLEMENTATION.
       WHEN 'OnSelectIconTabBar' .
         client->message_toast_display( |Event SelectedTabBar Key {  mv_selected_key } | ).
 
-        client->_event_client( val = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( mv_selected_key ) ) ).
+        DATA temp1 TYPE string_table.
+        CLEAR temp1.
+        INSERT `NavCon` INTO TABLE temp1.
+        INSERT mv_selected_key INTO TABLE temp1.
+        client->_event_client( val = 'NAV_TO' t_arg  = temp1 ).
         Z2UI5_view_display( ).
 
       WHEN OTHERS.
@@ -83,8 +87,14 @@ CLASS Z2UI5_CL_DEMO_APP_088 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_view_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(tool_page) = view->shell( )->tool_page(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp3 TYPE string_table.
+    CLEAR temp3.
+    INSERT `NavCon` INTO TABLE temp3.
+    INSERT `${$parameters>/selectedKey}` INTO TABLE temp3.
+    DATA tool_page TYPE REF TO z2ui5_cl_xml_view.
+    tool_page = view->shell( )->tool_page(
                           )->header( ns = `tnt`
                             )->tool_header(
 
@@ -124,7 +134,7 @@ CLASS Z2UI5_CL_DEMO_APP_088 IMPLEMENTATION.
                               )->icon_tab_header( selectedkey = client->_bind_edit( mv_selected_key )
 *                                                  select = client->_event( `OnSelectIconTabBar` )
 *                                                  select = client->_event_client( action = 'NAV_TO' t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
-                                                  select = client->_event_client( val = client->cs_event-nav_container_to t_arg  = value #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
+                                                  select = client->_event_client( val = client->cs_event-nav_container_to t_arg  = temp3 )
                                                   mode = `Inline`
                                   )->items(
                                     )->icon_tab_filter( key = `page1` text = `Home` )->get_parent(

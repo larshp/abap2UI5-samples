@@ -26,7 +26,8 @@ CLASS z2ui5_cl_demo_app_013 IMPLEMENTATION.
 
   METHOD render_tab_donut.
 
-    DATA(container) = z2ui5_cl_ui5=>_factory( )->_ns_m(
+    DATA container TYPE REF TO z2ui5_cl_ui5_ui.
+    container = z2ui5_cl_ui5=>_factory( )->_ns_m(
         )->shell(
         )->page(
             title = 'abap2UI5 - Visualization'
@@ -38,7 +39,8 @@ CLASS z2ui5_cl_demo_app_013 IMPLEMENTATION.
         )->_go_up( )->_ns_ui(
         )->tabcontainer( ).
 
-    DATA(grid) = container->tab(
+    DATA grid TYPE REF TO z2ui5_cl_ui5_ui.
+    grid = container->tab(
             text     = 'Donut Chart'
             selected = client->_bind( mv_tab_donut_active )
          )->grid( 'XL6 L6 M6 S12' ).
@@ -53,7 +55,8 @@ CLASS z2ui5_cl_demo_app_013 IMPLEMENTATION.
                 )->griddata( 'XL12 L12 M12 S12' ).
 
 
-    DATA(seg) = grid->_ns_m( )->flexbox(
+    DATA seg TYPE REF TO z2ui5_cl_ui5_suite.
+    seg = grid->_ns_m( )->flexbox(
             width          = '22rem'
             height         = '13rem'
             alignitems     = 'Start'

@@ -15,7 +15,8 @@ CLASS Z2UI5_CL_DEMO_APP_081 DEFINITION PUBLIC.
         name     TYPE string,
       END OF ty_tab.
 
-      DATA: mt_tab TYPE STANDARD TABLE OF ty_tab WITH EMPTY KEY.
+      TYPES temp1_a4f70f3f7d TYPE STANDARD TABLE OF ty_tab WITH DEFAULT KEY.
+DATA: mt_tab TYPE temp1_a4f70f3f7d.
 
   PROTECTED SECTION.
 
@@ -47,7 +48,8 @@ CLASS Z2UI5_CL_DEMO_APP_081 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_display_popover.
 
-    DATA(view) = Z2UI5_cl_xml_view=>factory_popup( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = Z2UI5_cl_xml_view=>factory_popup( ).
     view->popover(
                   title     = 'Popover Title'
                   placement = mv_placement
@@ -80,7 +82,8 @@ CLASS Z2UI5_CL_DEMO_APP_081 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_display_popover_list.
 
-    DATA(view) = Z2UI5_cl_xml_view=>factory_popup( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = Z2UI5_cl_xml_view=>factory_popup( ).
       view->popover(
                   title     = 'Popover Title'
                   placement = mv_placement
@@ -109,12 +112,15 @@ CLASS Z2UI5_CL_DEMO_APP_081 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_display_view.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
       )->page(
               title          = 'abap2UI5 - Popover with List'
               navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-              shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+              shownavbutton = temp1
           )->header_content(
                )->link(
                   text = 'Source_Code' target = '_blank'
@@ -187,7 +193,8 @@ CLASS Z2UI5_CL_DEMO_APP_081 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'SEL_CHANGE'.
-        DATA(lt_sel) = mt_tab.
+        DATA lt_sel LIKE mt_tab.
+        lt_sel = mt_tab.
         DELETE lt_sel WHERE selected IS INITIAL.
 
       WHEN 'POPOVER_LIST'.
@@ -222,12 +229,22 @@ CLASS Z2UI5_CL_DEMO_APP_081 IMPLEMENTATION.
     product  = 'tomato'.
     quantity = '500'.
 
-    mt_tab = VALUE #(
-                      ( id = `1` name = `name1` )
-                      ( id = `2` name = `name2` )
-                      ( id = `3` name = `name3` )
-                      ( id = `4` name = `name4` )
-                    ).
+    DATA temp1 LIKE mt_tab.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-id = `1`.
+    temp2-name = `name1`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-id = `2`.
+    temp2-name = `name2`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-id = `3`.
+    temp2-name = `name3`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-id = `4`.
+    temp2-name = `name4`.
+    INSERT temp2 INTO TABLE temp1.
+    mt_tab = temp1.
 
   ENDMETHOD.
 ENDCLASS.

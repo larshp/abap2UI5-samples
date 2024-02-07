@@ -39,7 +39,8 @@ CLASS lcl_demo_app_125 DEFINITION
     DATA mt_table_del     TYPE REF TO data.
     DATA ms_value         TYPE ty_s_value.
     DATA mv_table         TYPE string VALUE `USR01`.
-    DATA mt_dfies         TYPE STANDARD TABLE OF ty_s_dfies.
+    TYPES temp1_81391d1d57 TYPE STANDARD TABLE OF ty_s_dfies.
+DATA mt_dfies         TYPE temp1_81391d1d57.
     DATA mv_activ_row     TYPE string.
     DATA mv_edit          TYPE abap_bool.
 
@@ -311,11 +312,14 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
     FIELD-SYMBOLS <del> TYPE STANDARD TABLE.
     ASSIGN mt_table_del->* TO <del>.
 
-    DATA(t_arg) = client->get( )-t_event_arg.
-    READ TABLE t_arg INTO DATA(ls_arg) INDEX 1.
+    DATA t_arg TYPE string_table.
+    t_arg = client->get( )-t_event_arg.
+    DATA ls_arg TYPE string.
+    READ TABLE t_arg INTO ls_arg INDEX 1.
     IF sy-subrc = 0.
 
-      LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<line>).
+      FIELD-SYMBOLS <line> LIKE LINE OF <tab>.
+      LOOP AT <tab> ASSIGNING <line>.
 
         index = index + 1.
 
@@ -363,12 +367,16 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
     IF mo_parent_view IS INITIAL.
 
-      DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
+      DATA view TYPE REF TO z2ui5_cl_xml_view.
+      view = z2ui5_cl_xml_view=>factory( )->shell( ).
 
 
-      DATA(page) = view->page( title          =  mv_table
+      DATA page TYPE REF TO z2ui5_cl_xml_view.
+      DATA temp3 TYPE xsdboolean.
+      temp3 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+      page = view->page( title          =  mv_table
                                navbuttonpress = client->_event( 'BACK' )
-                               shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                               shownavbutton = temp3
                                class          = 'sapUiContentPadding' ).
 
     ELSE.
@@ -382,7 +390,8 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE any.
     ASSIGN mt_table->* TO <tab>.
 
-    DATA(columns) = page->table(
+    DATA columns TYPE REF TO z2ui5_cl_xml_view.
+    columns = page->table(
                    growing    ='true'
                    width      ='auto'
                    items      = client->_bind( val = <tab> )
@@ -402,26 +411,40 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
                 )->columns( ).
 
 
-    LOOP AT mt_comp REFERENCE INTO DATA(comp).
+    DATA temp2 LIKE LINE OF mt_comp.
+    DATA comp LIKE REF TO temp2.
+    LOOP AT mt_comp REFERENCE INTO comp.
 
       CHECK comp->name <> `MANDT`.
 
 
 
-      READ TABLE mt_dfies INTO DATA(dfies) WITH KEY fieldname = comp->name.
+      DATA dfies TYPE ty_s_dfies.
+      READ TABLE mt_dfies INTO dfies WITH KEY fieldname = comp->name.
 
-      DATA(width) = COND #(  WHEN comp->name = 'ROW_ID' THEN '2rem' ELSE '' ).
+      DATA width TYPE c LENGTH 4.
+      DATA temp1 LIKE width.
+      IF comp->name = 'ROW_ID'.
+        temp1 = '2rem'.
+      ELSE.
+        temp1 = ''.
+      ENDIF.
+      width = temp1.
 
       columns->column( width = width )->text( dfies-scrtext_s ).
 
     ENDLOOP.
 
 
-    DATA(cells) = columns->get_parent( )->items(
+    DATA temp4 TYPE string_table.
+    CLEAR temp4.
+    INSERT `${ROW_ID}` INTO TABLE temp4.
+    DATA cells TYPE REF TO z2ui5_cl_xml_view.
+    cells = columns->get_parent( )->items(
                                        )->column_list_item( valign = 'Middle'
                                                             type ='Navigation'
                                                             press = client->_event( val = 'ROW_ACTION_EDIT'
-                                                                            t_arg = VALUE #( ( `${ROW_ID}`  ) ) )
+                                                                            t_arg = temp4 )
                                        )->cells( ).
 
     LOOP AT mt_comp REFERENCE INTO comp.
@@ -431,8 +454,22 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
       READ TABLE mt_dfies INTO dfies WITH KEY fieldname = comp->name.
 
-      DATA(text)  = COND #( WHEN dfies-keyflag = abap_false THEN '{' && comp->name && '}' ELSE '' ).
-      DATA(title) = COND #( WHEN dfies-keyflag = abap_true  THEN '{' && comp->name && '}' ELSE '' ).
+      DATA temp6 TYPE string.
+      IF dfies-keyflag = abap_false.
+        temp6 = '{' && comp->name && '}'.
+      ELSE.
+        temp6 = ''.
+      ENDIF.
+      DATA text LIKE temp6.
+      text = temp6.
+      DATA temp7 TYPE string.
+      IF dfies-keyflag = abap_true.
+        temp7 = '{' && comp->name && '}'.
+      ELSE.
+        temp7 = ''.
+      ENDIF.
+      DATA title LIKE temp7.
+      title = temp7.
 
 
       cells->object_identifier( text  = text
@@ -478,7 +515,8 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
       CATCH cx_sy_dyn_call_illegal_class.
 
-        DATA(lv_fm) = 'GUID_CREATE'.
+        DATA lv_fm TYPE c LENGTH 11.
+        lv_fm = 'GUID_CREATE'.
 
         CALL FUNCTION lv_fm
           IMPORTING
@@ -499,11 +537,15 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
     IF mv_search_value IS NOT INITIAL.
 
-      LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<f_row>).
-        DATA(lv_row) = ``.
-        DATA(lv_index) = 1.
+      FIELD-SYMBOLS <f_row> LIKE LINE OF <tab>.
+      LOOP AT <tab> ASSIGNING <f_row>.
+        DATA lv_row TYPE string.
+        lv_row = ``.
+        DATA lv_index TYPE i.
+        lv_index = 1.
         DO.
-          ASSIGN COMPONENT lv_index OF STRUCTURE <f_row> TO FIELD-SYMBOL(<field>).
+          FIELD-SYMBOLS <field> TYPE any.
+          ASSIGN COMPONENT lv_index OF STRUCTURE <f_row> TO <field>.
           IF sy-subrc <> 0.
             EXIT.
           ENDIF.
@@ -527,23 +569,34 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
     DATA index              TYPE i.
     FIELD-SYMBOLS: <fs_tab> TYPE ANY TABLE.
 
-    DATA(o_type_desc) = cl_abap_typedescr=>describe_by_name( mv_table ).
-    DATA(o_struct_desc) = CAST cl_abap_structdescr( o_type_desc ).
-    DATA(comp) = o_struct_desc->get_components( ).
+    DATA o_type_desc TYPE REF TO cl_abap_typedescr.
+    o_type_desc = cl_abap_typedescr=>describe_by_name( mv_table ).
+    DATA temp8 TYPE REF TO cl_abap_structdescr.
+    temp8 ?= o_type_desc.
+    DATA o_struct_desc LIKE temp8.
+    o_struct_desc = temp8.
+    DATA comp TYPE abap_component_tab.
+    comp = o_struct_desc->get_components( ).
 
     TRY.
 
-        mt_comp = VALUE cl_abap_structdescr=>component_table(
-*                                                              ( name = 'SELKZ'
-*                                                                type = CAST #( cl_abap_datadescr=>describe_by_data( selkz ) ) )
-                                                              ( name = 'ROW_ID'
-                                                                type = CAST #( cl_abap_datadescr=>describe_by_data( index ) ) ) ).
+        DATA temp9 TYPE cl_abap_structdescr=>component_table.
+        CLEAR temp9.
+        DATA temp10 LIKE LINE OF temp9.
+        temp10-name = 'ROW_ID'.
+        DATA temp2 TYPE REF TO cl_abap_datadescr.
+        temp2 ?= cl_abap_datadescr=>describe_by_data( index ).
+        temp10-type = temp2.
+        INSERT temp10 INTO TABLE temp9.
+        mt_comp = temp9.
 
         APPEND LINES OF comp TO mt_comp.
 
-        DATA(new_struct_desc) = cl_abap_structdescr=>create( mt_comp ).
+        DATA new_struct_desc TYPE REF TO cl_abap_structdescr.
+        new_struct_desc = cl_abap_structdescr=>create( mt_comp ).
 
-        DATA(new_table_desc) = cl_abap_tabledescr=>create(
+        DATA new_table_desc TYPE REF TO cl_abap_tabledescr.
+        new_table_desc = cl_abap_tabledescr=>create(
           p_line_type  = new_struct_desc
           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -553,7 +606,7 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
         FIELD-SYMBOLS <table> TYPE ANY TABLE.
         ASSIGN o_table->* TO <table>.
 
-        SELECT * FROM (mv_table) INTO CORRESPONDING FIELDS OF TABLE @<table>.
+        SELECT * FROM (mv_table) INTO CORRESPONDING FIELDS OF TABLE <table>.
 
 
         lo_tab ?= cl_abap_tabledescr=>describe_by_data( <table> ).
@@ -646,7 +699,8 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
     LOOP AT <tab> ASSIGNING <line>.
 
-      ASSIGN COMPONENT 'ROW_ID' OF STRUCTURE <line> TO FIELD-SYMBOL(<row>).
+      FIELD-SYMBOLS <row> TYPE any.
+      ASSIGN COMPONENT 'ROW_ID' OF STRUCTURE <line> TO <row>.
       IF <row> IS ASSIGNED.
         <row> = sy-tabix.
       ENDIF.
@@ -659,11 +713,20 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
     DATA index TYPE int4.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
 
-    DATA(title) = COND #( WHEN mv_edit = abap_true THEN 'CRMST_UIU_EDIT' ELSE 'RSLPO_GUI_ADDPART' ).
+    DATA title TYPE c LENGTH 14.
+    DATA temp3 LIKE title.
+    IF mv_edit = abap_true.
+      temp3 = 'CRMST_UIU_EDIT'.
+    ELSE.
+      temp3 = 'RSLPO_GUI_ADDPART'.
+    ENDIF.
+    title = temp3.
 
-    DATA(simple_form) =  popup->dialog( title = title contentwidth = '40%'
+    DATA simple_form TYPE REF TO z2ui5_cl_xml_view.
+    simple_form =  popup->dialog( title = title contentwidth = '40%'
           )->simple_form(
           title     = ''
           layout    = 'ResponsiveGridLayout'
@@ -672,9 +735,12 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
           ).
 
     " Gehe über alle Comps wenn wir im Edit sind dann sind keyfelder nicht eingabebereit.
-    LOOP AT mt_comp REFERENCE INTO DATA(comp).
+    DATA temp12 LIKE LINE OF mt_comp.
+    DATA comp LIKE REF TO temp12.
+    LOOP AT mt_comp REFERENCE INTO comp.
 
-      READ TABLE mt_dfies INTO DATA(dfies) WITH KEY fieldname = comp->name.
+      DATA dfies TYPE ty_s_dfies.
+      READ TABLE mt_dfies INTO dfies WITH KEY fieldname = comp->name.
       IF sy-subrc <> 0.
         dfies-scrtext_m = comp->name.
       ENDIF.
@@ -687,11 +753,18 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
           index = index + 1.
 
 *          DATA(enabled) = COND #( WHEN dfies-keyflag = abap_true AND mv_edit = abap_true THEN abap_false ELSE abap_true ).
-          DATA(enabled) = xsdbool( dfies-keyflag = abap_false or mv_edit = abap_false ). " THEN abap_false ELSE abap_true ).
+          DATA enabled TYPE abap_bool.
+          DATA temp4 TYPE xsdboolean.
+          temp4 = boolc( dfies-keyflag = abap_false or mv_edit = abap_false ).
+          enabled = temp4. " THEN abap_false ELSE abap_true ).
 *          DATA(visible) = COND #( WHEN dfies-fieldname = 'MANDT' THEN abap_false ELSE abap_true ).
-          DATA(visible) = xsdbool( dfies-fieldname <> 'MANDT' ). "  THEN abap_false ELSE abap_true ).
+          DATA visible TYPE abap_bool.
+          DATA temp5 TYPE xsdboolean.
+          temp5 = boolc( dfies-fieldname <> 'MANDT' ).
+          visible = temp5. "  THEN abap_false ELSE abap_true ).
 
-          ASSIGN COMPONENT index OF STRUCTURE ms_value TO FIELD-SYMBOL(<val>).
+          FIELD-SYMBOLS <val> TYPE any.
+          ASSIGN COMPONENT index OF STRUCTURE ms_value TO <val>.
 
           CHECK sy-subrc = 0.
 
@@ -708,10 +781,18 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
 
     ENDLOOP.
 
-    DATA(event) =  COND #( WHEN mv_edit = abap_true THEN `POPUP_ADD_EDIT` ELSE `POPUP_ADD_ADD` ).
+    DATA temp13 TYPE string.
+    IF mv_edit = abap_true.
+      temp13 = `POPUP_ADD_EDIT`.
+    ELSE.
+      temp13 = `POPUP_ADD_ADD`.
+    ENDIF.
+    DATA event LIKE temp13.
+    event = temp13.
 
 
-    DATA(toolbar) = simple_form->get_root( )->get_child(
+    DATA toolbar TYPE REF TO z2ui5_cl_xml_view.
+    toolbar = simple_form->get_root( )->get_child(
          )->footer(
          )->overflow_toolbar( ).
     toolbar->toolbar_spacer(
@@ -723,11 +804,14 @@ CLASS lcl_demo_app_125 IMPLEMENTATION.
     ).
 
     IF mv_edit = abap_true.
+      DATA temp14 TYPE string_table.
+      CLEAR temp14.
+      INSERT mv_activ_row INTO TABLE temp14.
       toolbar->button(
         text  =  'MLCCS_D_XDELETE'
         type  = 'Reject'
         icon  = 'sap-icon://delete'
-        press = client->_event( val = 'ROW_ACTION_DELETE' t_arg = VALUE #( ( mv_activ_row ) ) ) ).
+        press = client->_event( val = 'ROW_ACTION_DELETE' t_arg = temp14 ) ).
     ENDIF.
 
     toolbar->button(
@@ -812,7 +896,7 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
 
       on_init( ).
 
-      mo_app_simple_view = NEW #( ).
+      CREATE OBJECT mo_app_simple_view.
 
 
     ENDIF.
@@ -831,7 +915,7 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
 
         IF mv_selectedkey <> mv_selectedkey_tmp.
 
-          mo_app_test = NEW z2ui5_cl_demo_app_130( ).
+          CREATE OBJECT mo_app_test TYPE z2ui5_cl_demo_app_130.
 
         ENDIF.
 
@@ -849,7 +933,7 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
 
         IF mv_selectedkey <> mv_selectedkey_tmp.
 
-          mo_app_simple_view = NEW #( ).
+          CREATE OBJECT mo_app_simple_view.
 
         ENDIF.
 
@@ -897,17 +981,22 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
 
   METHOD render_main.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( )->shell( ).
 
-    DATA(page) = view->page( id             = `page_main`
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp6 TYPE xsdboolean.
+    temp6 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page = view->page( id             = `page_main`
                              title          = 'Customizing'
                              navbuttonpress = client->_event( 'BACK' )
-                             shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                             shownavbutton = temp6
                              class          = 'sapUiContentPadding' ).
 
 
 
-    DATA(lo_items) = page->icon_tab_bar( class       = 'sapUiResponsiveContentPadding'
+    DATA lo_items TYPE REF TO z2ui5_cl_xml_view.
+    lo_items = page->icon_tab_bar( class       = 'sapUiResponsiveContentPadding'
                                          selectedkey = client->_bind_edit( mv_selectedkey )
                                          select      = client->_event( val = 'ONSELECTICONTABBAR' )
                                                        )->items( ).
@@ -951,10 +1040,15 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
 
   METHOD get_count.
 
-    DATA(o_type_desc) = cl_abap_typedescr=>describe_by_name( tabname ).
-    DATA(o_struct_desc) = CAST cl_abap_structdescr( o_type_desc ).
+    DATA o_type_desc TYPE REF TO cl_abap_typedescr.
+    o_type_desc = cl_abap_typedescr=>describe_by_name( tabname ).
+    DATA temp16 TYPE REF TO cl_abap_structdescr.
+    temp16 ?= o_type_desc.
+    DATA o_struct_desc LIKE temp16.
+    o_struct_desc = temp16.
 
-    DATA(new_table_desc) = cl_abap_tabledescr=>create(
+    DATA new_table_desc TYPE REF TO cl_abap_tabledescr.
+    new_table_desc = cl_abap_tabledescr=>create(
       p_line_type  = o_struct_desc
       p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -964,7 +1058,7 @@ CLASS lcl_demo_app_126 IMPLEMENTATION.
     FIELD-SYMBOLS <table> TYPE ANY TABLE.
     ASSIGN o_table->* TO <table>.
 
-    SELECT * FROM (tabname) INTO CORRESPONDING FIELDS OF TABLE @<table>.
+    SELECT * FROM (tabname) INTO CORRESPONDING FIELDS OF TABLE <table>.
 
     result = lines( <table> ).
 

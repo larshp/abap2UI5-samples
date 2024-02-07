@@ -19,9 +19,11 @@ CLASS Z2UI5_CL_DEMO_APP_065 IMPLEMENTATION.
 
   METHOD Z2UI5_if_app~main.
 
-      data(lo_view) = z2ui5_cl_xml_view=>factory( ).
+      DATA lo_view TYPE REF TO z2ui5_cl_xml_view.
+      lo_view = z2ui5_cl_xml_view=>factory( ).
 
-        DATA(page) = lo_view->shell(
+        DATA page TYPE REF TO z2ui5_cl_xml_view.
+        page = lo_view->shell(
             )->page(
                     title = `Main View` id = `test`
                     navbuttonpress = client->_event( 'BACK' )
@@ -38,11 +40,15 @@ CLASS Z2UI5_CL_DEMO_APP_065 IMPLEMENTATION.
                 )->button( text = 'Rerender only nested view' press = client->_event( 'NEST' )
                 )->input( value = client->_bind_edit( mv_input_main )  ).
 
-    DATA(lo_view_nested) = Z2UI5_cl_xml_view=>factory(
+    DATA temp1 TYPE string_table.
+    CLEAR temp1.
+    INSERT `https://github.com/abap2UI5/abap2UI5/` INTO TABLE temp1.
+    DATA lo_view_nested TYPE REF TO z2ui5_cl_xml_view.
+    lo_view_nested = Z2UI5_cl_xml_view=>factory(
           )->page( title = `Nested View`
               )->button( text = 'event' press = client->_event( 'TEST' )
               )->button( text  = `frontend event`
-                         press = client->_event_client( val = client->cs_event-open_new_tab t_arg = value #( ( `https://github.com/abap2UI5/abap2UI5/` ) ) )
+                         press = client->_event_client( val = client->cs_event-open_new_tab t_arg = temp1 )
               )->input( value = client->_bind_edit( mv_input_nest ) ).
 
     IF check_initialized = abap_false.

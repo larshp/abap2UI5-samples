@@ -26,12 +26,20 @@ CLASS Z2UI5_CL_DEMO_APP_118 IMPLEMENTATION.
   METHOD view_main.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
 *    view->_cc( )->font_awesome( )->load_animation_js( faw_js_url = `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/js/all.min.js` ).
-    view->_generic( ns = `html` name = `script` t_prop = value #( ( n = `src` v = `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/js/all.min.js` ) ) ).
+    DATA temp1 TYPE z2ui5_if_types=>ty_t_name_value.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-n = `src`.
+    temp2-v = `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/js/all.min.js`.
+    INSERT temp2 INTO TABLE temp1.
+    view->_generic( ns = `html` name = `script` t_prop = temp1 ).
 
-    DATA(page) = view->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell( )->page(
             title          = 'abap2UI5 - FontAwsome Fonts'
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true ).

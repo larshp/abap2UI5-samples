@@ -37,16 +37,18 @@ CLASS Z2UI5_CL_DEMO_APP_062 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      SELECT SINGLE FROM Z2UI5_t_demo_01
-        FIELDS *
+      DATA ls_data TYPE Z2UI5_t_demo_01.
+      SELECT * SINGLE FROM Z2UI5_t_demo_01
+
         WHERE name = 'TEST01'
-        INTO @DATA(ls_data).
+        INTO ls_data.
 
       IF sy-subrc = 0.
-        SELECT SINGLE FROM Z2UI5_t_fw_01
-         FIELDS *
-        WHERE id = @ls_data-uuid
-       INTO @DATA(ls_draft).
+        DATA ls_draft TYPE Z2UI5_t_fw_01.
+        SELECT * SINGLE FROM Z2UI5_t_fw_01
+
+        WHERE id = ls_data-uuid
+       INTO ls_draft.
 
         IF sy-subrc = 0.
           client->nav_app_leave( client->get_app( ls_draft-id ) ).
@@ -58,7 +60,13 @@ CLASS Z2UI5_CL_DEMO_APP_062 IMPLEMENTATION.
     Z2UI5_on_event( client ).
     Z2UI5_on_rendering( client ).
 
-    MODIFY Z2UI5_t_demo_01 FROM @( VALUE #( uuid = client->get( )-s_draft-id name = 'TEST01' ) ).
+    DATA temp1 LIKE DATA(temp1).
+    CLEAR temp1.
+    temp1-uuid = client->get( )-s_draft-id.
+    temp1-name = 'TEST01'.
+    DATA temp1 LIKE temp1.
+    temp1 = temp1.
+MODIFY Z2UI5_t_demo_01 FROM temp1.
     COMMIT WORK.
 
   ENDMETHOD.
@@ -83,7 +91,8 @@ CLASS Z2UI5_CL_DEMO_APP_062 IMPLEMENTATION.
 
   METHOD Z2UI5_on_rendering.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
             title          = 'abap2UI5 - Start app with values Demo'
             navbuttonpress = client->_event( 'BACK' )
@@ -94,7 +103,8 @@ CLASS Z2UI5_CL_DEMO_APP_062 IMPLEMENTATION.
              )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12'
+    DATA grid TYPE REF TO z2ui5_cl_xml_view.
+    grid = page->grid( 'L6 M12 S12'
         )->content( 'layout' ).
 
     grid->simple_form( editable = abap_true title = 'Input'

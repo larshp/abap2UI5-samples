@@ -21,7 +21,7 @@ CLASS Z2UI5_CL_DEMO_APP_064 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
     DATA client TYPE REF TO Z2UI5_if_client.
 
     METHODS call_newest_state
@@ -52,7 +52,7 @@ CLASS Z2UI5_CL_DEMO_APP_064 IMPLEMENTATION.
 
       WHEN 'REFRESH' OR 'SEND'.
 
-        IF check_db_load = abap_true and call_newest_state( client ).
+        IF check_db_load = abap_true and call_newest_state( client ) IS NOT INITIAL.
             RETURN.
         ENDIF.
 
@@ -64,7 +64,14 @@ CLASS Z2UI5_CL_DEMO_APP_064 IMPLEMENTATION.
     Z2UI5_on_rendering( client ).
 
     check_db_load = abap_true.
-    MODIFY Z2UI5_t_demo_01 FROM @( VALUE #( uuid = client->get( )-s_draft-id name = 'TEST02' game = mv_game ) ).
+    DATA temp1 LIKE DATA(temp1).
+    CLEAR temp1.
+    temp1-uuid = client->get( )-s_draft-id.
+    temp1-name = 'TEST02'.
+    temp1-game = mv_game.
+    DATA temp1 LIKE temp1.
+    temp1 = temp1.
+MODIFY Z2UI5_t_demo_01 FROM temp1.
     COMMIT WORK.
 
   ENDMETHOD.
@@ -72,7 +79,8 @@ CLASS Z2UI5_CL_DEMO_APP_064 IMPLEMENTATION.
 
   METHOD Z2UI5_on_rendering.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
             title          = 'abap2UI5 - Game Example'
             navbuttonpress = client->_event( 'BACK' )
@@ -83,7 +91,8 @@ CLASS Z2UI5_CL_DEMO_APP_064 IMPLEMENTATION.
              )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12'
+    DATA grid TYPE REF TO z2ui5_cl_xml_view.
+    grid = page->grid( 'L6 M12 S12'
         )->content( 'layout' ).
 
 
@@ -116,24 +125,33 @@ CLASS Z2UI5_CL_DEMO_APP_064 IMPLEMENTATION.
 
   METHOD call_newest_state.
 
-    SELECT SINGLE FROM Z2UI5_t_demo_01
-          FIELDS *
+    DATA ls_data TYPE Z2UI5_t_demo_01.
+    SELECT * SINGLE FROM Z2UI5_t_demo_01
+
           WHERE name = 'TEST02' AND
-                game = @mv_game
-          INTO @DATA(ls_data).
+                game = mv_game
+          INTO ls_data.
 
     IF sy-subrc = 0 AND ls_data-uuid <> client->get( )-s_draft-id.
-      SELECT SINGLE FROM Z2UI5_t_fw_01
-       FIELDS *
-      WHERE id = @ls_data-uuid
-     INTO @DATA(ls_draft).
+      DATA ls_draft TYPE Z2UI5_t_fw_01.
+      SELECT * SINGLE FROM Z2UI5_t_fw_01
+
+      WHERE id = ls_data-uuid
+     INTO ls_draft.
 
       IF sy-subrc = 0.
-        DATA(app) = CAST Z2UI5_CL_DEMO_APP_064( i_client->get_app( ls_draft-id ) ).
+        DATA temp2 TYPE REF TO z2ui5_cl_demo_app_064.
+        temp2 ?= i_client->get_app( ls_draft-id ).
+        DATA app LIKE temp2.
+        app = temp2.
         app->mv_user = mv_user.
 
         IF mv_message IS NOT INITIAL and client->get( )-event = 'SEND'.
-          INSERT VALUE #( title = mv_user descr = mv_message ) INTO TABLE app->t_tab.
+          DATA temp3 TYPE ty_row.
+          CLEAR temp3.
+          temp3-title = mv_user.
+          temp3-descr = mv_message.
+          INSERT temp3 INTO TABLE app->t_tab.
         ENDIF.
         app->check_db_load = abap_false.
         i_client->nav_app_leave(  app ).

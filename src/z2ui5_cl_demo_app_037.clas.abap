@@ -105,8 +105,17 @@ CLASS z2ui5_cl_demo_app_037 IMPLEMENTATION.
         z2ui5_on_render( ).
 
       WHEN 'POST'.
-        DATA(lt_arg) = client->get( )-t_event_arg.
-        client->message_toast_display( lt_arg[ 1 ] ).
+        DATA lt_arg TYPE string_table.
+        lt_arg = client->get( )-t_event_arg.
+        DATA temp1 LIKE LINE OF lt_arg.
+        DATA temp2 LIKE sy-tabix.
+        temp2 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp1.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        client->message_toast_display( temp1 ).
 
       WHEN 'LOAD_CC'.
         mv_load_cc = abap_true.
@@ -131,8 +140,10 @@ CLASS z2ui5_cl_demo_app_037 IMPLEMENTATION.
 
   METHOD z2ui5_on_render.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(lv_xml) = `<mvc:View` && |\n|  &&
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA lv_xml TYPE string.
+    lv_xml = `<mvc:View` && |\n|  &&
                           `    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"` && |\n|  &&
                           `  xmlns:z2ui5="z2ui5"  xmlns:m="sap.m" xmlns="http://www.w3.org/1999/xhtml"` && |\n|  &&
                           `    ><m:Button ` && |\n|  &&

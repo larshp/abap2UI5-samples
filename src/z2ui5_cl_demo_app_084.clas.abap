@@ -55,7 +55,7 @@ CLASS Z2UI5_CL_DEMO_APP_084 DEFINITION
       END OF ty_msg .
 
     DATA:
-      t_msg TYPE STANDARD TABLE OF ty_msg WITH EMPTY KEY .
+      t_msg TYPE STANDARD TABLE OF ty_msg WITH DEFAULT KEY .
     DATA check_initialized TYPE abap_bool .
 
     METHODS Z2UI5_display_view .
@@ -77,7 +77,8 @@ CLASS Z2UI5_CL_DEMO_APP_084 IMPLEMENTATION.
 
   METHOD Z2UI5_display_popover.
 
-    DATA(popup) = Z2UI5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = Z2UI5_cl_xml_view=>factory_popup( ).
 
     popup = popup->popover(
               placement = `Top`
@@ -102,7 +103,8 @@ CLASS Z2UI5_CL_DEMO_APP_084 IMPLEMENTATION.
 
   METHOD Z2UI5_display_popup.
 
-    DATA(popup) = Z2UI5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = Z2UI5_cl_xml_view=>factory_popup( ).
 
     popup = popup->dialog(
           title = `Messages`
@@ -136,9 +138,11 @@ CLASS Z2UI5_CL_DEMO_APP_084 IMPLEMENTATION.
 
   METHOD Z2UI5_display_view.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = view->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell(
         )->page( class = `sapUiContentPadding `
             title          = 'abap2UI5 - Input Validation'
             navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )

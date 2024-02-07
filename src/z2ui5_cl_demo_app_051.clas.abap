@@ -87,7 +87,8 @@ CLASS Z2UI5_CL_DEMO_APP_051 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_on_rendering.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
             title          = 'abap2UI5 - Label Example'
             navbuttonpress = client->_event( 'BACK' )
@@ -97,7 +98,8 @@ CLASS Z2UI5_CL_DEMO_APP_051 IMPLEMENTATION.
          )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(layout) = page->vertical_layout( class  = `sapUiContentPadding` width = `100%` ).
+    DATA layout TYPE REF TO z2ui5_cl_xml_view.
+    layout = page->vertical_layout( class  = `sapUiContentPadding` width = `100%` ).
     layout->label( text = 'Input mandantory' labelfor = `input1` ).
     layout->input(
                 id              = `input1`

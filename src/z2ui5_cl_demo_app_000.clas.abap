@@ -32,7 +32,12 @@ CLASS z2ui5_cl_demo_app_000 IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
       IF mt_scroll IS INITIAL.
-        mt_scroll = VALUE #( ( id = `page` ) ).
+        DATA temp1 TYPE z2ui5_cl_fw_cc_scrolling=>ty_t_item.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-id = `page`.
+        INSERT temp2 INTO TABLE temp1.
+        mt_scroll = temp1.
       ENDIF.
       mv_set_scroll = abap_true.
     ENDIF.
@@ -44,7 +49,8 @@ CLASS z2ui5_cl_demo_app_000 IMPLEMENTATION.
 
       WHEN OTHERS.
         TRY.
-            DATA(lv_classname) = to_upper( client->get( )-event ).
+            DATA lv_classname TYPE string.
+            lv_classname = to_upper( client->get( )-event ).
             DATA li_app TYPE REF TO z2ui5_if_app.
             CREATE OBJECT li_app TYPE (lv_classname).
             client->nav_app_call( li_app ).
@@ -53,12 +59,15 @@ CLASS z2ui5_cl_demo_app_000 IMPLEMENTATION.
         ENDTRY.
     ENDCASE.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page = z2ui5_cl_xml_view=>factory(
         )->shell( )->page(
         id = `page`
         title = 'abap2UI5 - Samples'
         navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-        shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+        shownavbutton = temp3
         )->header_content(
             )->toolbar_spacer(
             )->link( text = 'SCN'     target = '_blank' href = 'https://blogs.sap.com/tag/abap2ui5/'
@@ -79,14 +88,16 @@ CLASS z2ui5_cl_demo_app_000 IMPLEMENTATION.
 `<a href="https://github.com/abap2UI5/abap2UI5/issues" style="color:blue; font-weight:600;">issue</a> or send a <a href="https://github.com/abap2UI5/abap2UI5-samples/pulls" style="color:blue; font-weight:600;">PR</a>` &&
 `.</p>` ).
 
-    DATA(page2) = page.
+    DATA page2 LIKE page.
+    page2 = page.
 
     page = page->panel(
      expandable = abap_true
      expanded   = client->_bind_edit( ms_check_expanded-basics )
      headertext = `General, Events, Binding` ).
 
-    DATA(panel) = page->panel(
+    DATA panel TYPE REF TO z2ui5_cl_xml_view.
+    panel = page->panel(
          expandable = abap_false
          expanded   = abap_true
          headertext = `Binding & Events`

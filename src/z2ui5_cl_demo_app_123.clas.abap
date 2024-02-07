@@ -16,7 +16,8 @@ CLASS z2ui5_cl_demo_app_123 DEFINITION
         key           TYPE string,
         icon          TYPE string,
       END OF ty_spot.
-    DATA mt_spot TYPE TABLE OF ty_spot.
+    TYPES temp1_d73221ca3a TYPE TABLE OF ty_spot.
+DATA mt_spot TYPE temp1_d73221ca3a.
 
     DATA check_initialized TYPE abap_bool.
 
@@ -34,11 +35,34 @@ CLASS z2ui5_cl_demo_app_123 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      mt_spot = VALUE #(
-        ( pos = `9.98336;53.55024;0`         contentoffset = `0;-6` scale = `1;1;1` key = `Hamburg`     tooltip = `Hamburg`     type = `Default` icon = `factory`  )
-        ( pos = `11.5820;48.1351;0`          contentoffset = `0;-5` scale = `1;1;1` key = `Munich`      tooltip = `Munich`      type = `Default` icon = `factory`  )
-        ( pos = `8.683340000;50.112000000;0` contentoffset = `0;-6` scale = `1;1;1` key = `Frankfurt`   tooltip = `Frankfurt`   type = `Default` icon = `factory`  )
-       ).
+      DATA temp1 LIKE mt_spot.
+      CLEAR temp1.
+      DATA temp2 LIKE LINE OF temp1.
+      temp2-pos = `9.98336;53.55024;0`.
+      temp2-contentoffset = `0;-6`.
+      temp2-scale = `1;1;1`.
+      temp2-key = `Hamburg`.
+      temp2-tooltip = `Hamburg`.
+      temp2-type = `Default`.
+      temp2-icon = `factory`.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-pos = `11.5820;48.1351;0`.
+      temp2-contentoffset = `0;-5`.
+      temp2-scale = `1;1;1`.
+      temp2-key = `Munich`.
+      temp2-tooltip = `Munich`.
+      temp2-type = `Default`.
+      temp2-icon = `factory`.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-pos = `8.683340000;50.112000000;0`.
+      temp2-contentoffset = `0;-6`.
+      temp2-scale = `1;1;1`.
+      temp2-key = `Frankfurt`.
+      temp2-tooltip = `Frankfurt`.
+      temp2-type = `Default`.
+      temp2-icon = `factory`.
+      INSERT temp2 INTO TABLE temp1.
+      mt_spot = temp1.
 
     ENDIF.
 
@@ -51,12 +75,15 @@ CLASS z2ui5_cl_demo_app_123 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     client->view_display( view->shell(
           )->page(
                   title          = 'abap2UI5 - Map Container'
                   navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                  shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                  shownavbutton = temp3
               )->header_content(
                   )->link(
                       text = 'Source_Code'

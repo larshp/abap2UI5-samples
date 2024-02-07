@@ -14,7 +14,7 @@ CLASS Z2UI5_CL_DEMO_APP_053 DEFINITION PUBLIC.
         quantity         TYPE i,
       END OF ty_s_tab.
 
-    TYPES ty_t_table TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY.
+    TYPES ty_t_table TYPE STANDARD TABLE OF ty_s_tab WITH DEFAULT KEY.
 
     DATA mv_search_value TYPE string.
     DATA mt_table TYPE ty_t_table.
@@ -72,12 +72,16 @@ CLASS Z2UI5_CL_DEMO_APP_053 IMPLEMENTATION.
 
   METHOD Z2UI5_on_init.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    data(page1) = view->page( id = `page_main`
+    DATA page1 TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page1 = view->page( id = `page_main`
             title          = 'abap2UI5 - List Report Features'
             navbuttonpress = client->_event( 'BACK' )
-            shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ) ).
+            shownavbutton = temp1 ).
 
       page1->header_content(
             )->link(
@@ -87,14 +91,17 @@ CLASS Z2UI5_CL_DEMO_APP_053 IMPLEMENTATION.
                 text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
        ).
 
-    DATA(page) = page1->dynamic_page( headerexpanded = abap_true headerpinned = abap_true ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = page1->dynamic_page( headerexpanded = abap_true headerpinned = abap_true ).
 
-    DATA(header_title) = page->title( ns = 'f'  )->get( )->dynamic_page_title( ).
+    DATA header_title TYPE REF TO z2ui5_cl_xml_view.
+    header_title = page->title( ns = 'f'  )->get( )->dynamic_page_title( ).
     header_title->heading( ns = 'f' )->hbox( )->title( `Search Field` ).
     header_title->expanded_content( 'f' ).
     header_title->snapped_content( ns = 'f' ).
 
-    DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
+    DATA lo_box TYPE REF TO z2ui5_cl_xml_view.
+    lo_box = page->header( )->dynamic_page_header( pinnable = abap_true
          )->flex_box( alignitems = `Start` justifycontent = `SpaceBetween` )->flex_box( alignItems = `Start` ).
 
     lo_box->vbox( )->text( `Search` )->search_field(
@@ -110,18 +117,22 @@ CLASS Z2UI5_CL_DEMO_APP_053 IMPLEMENTATION.
         press = client->_event( `BUTTON_START` )
         type = `Emphasized` ).
 
-    DATA(cont) = page->content( ns = 'f' ).
+    DATA cont TYPE REF TO z2ui5_cl_xml_view.
+    cont = page->content( ns = 'f' ).
 
-    DATA(tab) = cont->table( items = client->_bind( val = mt_table ) ).
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = cont->table( items = client->_bind( val = mt_table ) ).
 
-    DATA(lo_columns) = tab->columns( ).
+    DATA lo_columns TYPE REF TO z2ui5_cl_xml_view.
+    lo_columns = tab->columns( ).
     lo_columns->column( )->text( text = `Product` ).
     lo_columns->column( )->text( text = `Date` ).
     lo_columns->column( )->text( text = `Name` ).
     lo_columns->column( )->text( text = `Location` ).
     lo_columns->column( )->text( text = `Quantity` ).
 
-    DATA(lo_cells) = tab->items( )->column_list_item( ).
+    DATA lo_cells TYPE REF TO z2ui5_cl_xml_view.
+    lo_cells = tab->items( )->column_list_item( ).
     lo_cells->text( `{PRODUCT}` ).
     lo_cells->text( `{CREATE_DATE}` ).
     lo_cells->text( `{CREATE_BY}` ).
@@ -135,14 +146,46 @@ CLASS Z2UI5_CL_DEMO_APP_053 IMPLEMENTATION.
 
   METHOD Z2UI5_set_data.
 
-    mt_table = VALUE #(
-        ( product = 'table' create_date = `01.01.2023` create_by = `Peter` storage_location = `AREA_001` quantity = 400 )
-        ( product = 'chair' create_date = `01.01.2022` create_by = `James` storage_location = `AREA_001` quantity = 123 )
-        ( product = 'sofa' create_date = `01.05.2021` create_by = `Simone` storage_location = `AREA_001` quantity = 700 )
-        ( product = 'computer' create_date = `27.01.2023` create_by = `Theo` storage_location = `AREA_001` quantity = 200 )
-        ( product = 'printer' create_date = `01.01.2023` create_by = `Hannah` storage_location = `AREA_001` quantity = 90 )
-        ( product = 'table2' create_date = `01.01.2023` create_by = `Julia` storage_location = `AREA_001` quantity = 110 )
-    ).
+    DATA temp1 TYPE ty_t_table.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-product = 'table'.
+    temp2-create_date = `01.01.2023`.
+    temp2-create_by = `Peter`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 400.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-product = 'chair'.
+    temp2-create_date = `01.01.2022`.
+    temp2-create_by = `James`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 123.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-product = 'sofa'.
+    temp2-create_date = `01.05.2021`.
+    temp2-create_by = `Simone`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 700.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-product = 'computer'.
+    temp2-create_date = `27.01.2023`.
+    temp2-create_by = `Theo`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 200.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-product = 'printer'.
+    temp2-create_date = `01.01.2023`.
+    temp2-create_by = `Hannah`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 90.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-product = 'table2'.
+    temp2-create_date = `01.01.2023`.
+    temp2-create_by = `Julia`.
+    temp2-storage_location = `AREA_001`.
+    temp2-quantity = 110.
+    INSERT temp2 INTO TABLE temp1.
+    mt_table = temp1.
 
   ENDMETHOD.
 

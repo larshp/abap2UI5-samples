@@ -17,7 +17,8 @@ CLASS z2ui5_cl_demo_app_132 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    DATA(lo_view) = z2ui5_cl_ui5=>_factory( )->_ns_m(
+    DATA lo_view TYPE REF TO z2ui5_cl_ui5.
+    lo_view = z2ui5_cl_ui5=>_factory( )->_ns_m(
         )->bar( )->content_middle(
             )->label( id = 'basic-label'
             )->button(

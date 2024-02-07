@@ -26,8 +26,11 @@ CLASS z2ui5_cl_demo_app_168 IMPLEMENTATION.
   METHOD ui5_callback.
 
     TRY.
-        DATA(lo_prev) = client->get_app( client->get(  )-s_draft-id_prev_app ).
-        IF CAST z2ui5_cl_popup_file_download( lo_prev )->result( ).
+        DATA lo_prev TYPE REF TO z2ui5_if_app.
+        lo_prev = client->get_app( client->get(  )-s_draft-id_prev_app ).
+        DATA temp1 TYPE REF TO z2ui5_cl_popup_file_download.
+        temp1 ?= lo_prev.
+        IF temp1->result( ) IS NOT INITIAL.
           client->message_box_display( `the input is downloaded` ).
         ENDIF.
       CATCH cx_root.
@@ -38,12 +41,15 @@ CLASS z2ui5_cl_demo_app_168 IMPLEMENTATION.
 
   METHOD ui5_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
         )->page(
                 title          = 'abap2UI5 - Popup File Download'
                 navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'
@@ -64,7 +70,8 @@ CLASS z2ui5_cl_demo_app_168 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'POPUP'.
-        DATA(lo_app) = z2ui5_cl_popup_file_download=>factory( get_file( ) ).
+        DATA lo_app TYPE REF TO z2ui5_cl_popup_file_download.
+        lo_app = z2ui5_cl_popup_file_download=>factory( get_file( ) ).
         client->nav_app_call( lo_app ).
 
       WHEN 'BACK'.

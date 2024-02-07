@@ -12,7 +12,8 @@ CLASS z2ui5_cl_demo_app_152 DEFINITION PUBLIC.
         value TYPE string,
         descr TYPE string,
       END OF ty_row.
-    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    TYPES temp1_eeb45a0adc TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA mt_tab TYPE temp1_eeb45a0adc.
 
     DATA mv_check_initialized TYPE abap_bool.
     METHODS ui5_display.
@@ -34,14 +35,29 @@ CLASS z2ui5_cl_demo_app_152 IMPLEMENTATION.
 
       WHEN 'POPUP'.
 
-        mt_tab = VALUE #( descr = 'this is a description'
-             (  title = 'title_01'  value = 'value_01' )
-             (  title = 'title_02'  value = 'value_02' )
-             (  title = 'title_03'  value = 'value_03' )
-             (  title = 'title_04'  value = 'value_04' )
-             (  title = 'title_05'  value = 'value_05' ) ).
+        DATA temp1 LIKE mt_tab.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-descr = 'this is a description'.
+        temp2-title = 'title_01'.
+        temp2-value = 'value_01'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-title = 'title_02'.
+        temp2-value = 'value_02'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-title = 'title_03'.
+        temp2-value = 'value_03'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-title = 'title_04'.
+        temp2-value = 'value_04'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-title = 'title_05'.
+        temp2-value = 'value_05'.
+        INSERT temp2 INTO TABLE temp1.
+        mt_tab = temp1.
 
-        DATA(lo_app) = z2ui5_cl_popup_to_select=>factory( mt_tab ).
+        DATA lo_app TYPE REF TO z2ui5_cl_popup_to_select.
+        lo_app = z2ui5_cl_popup_to_select=>factory( mt_tab ).
         client->nav_app_call( lo_app ).
 
       WHEN 'BACK'.
@@ -54,12 +70,15 @@ CLASS z2ui5_cl_demo_app_152 IMPLEMENTATION.
 
   METHOD ui5_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
         )->page(
                 title          = 'abap2UI5 - Popup To Select'
                 navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'
@@ -96,8 +115,12 @@ CLASS z2ui5_cl_demo_app_152 IMPLEMENTATION.
   METHOD ui5_callback.
 
     TRY.
-        DATA(lo_prev) = client->get_app( client->get(  )-s_draft-id_prev_app ).
-        DATA(ls_result) = CAST z2ui5_cl_popup_to_select( lo_prev )->result( ).
+        DATA lo_prev TYPE REF TO z2ui5_if_app.
+        lo_prev = client->get_app( client->get(  )-s_draft-id_prev_app ).
+        DATA temp3 TYPE REF TO z2ui5_cl_popup_to_select.
+        temp3 ?= lo_prev.
+        DATA ls_result TYPE z2ui5_cl_popup_to_select=>ty_s_result.
+        ls_result = temp3->result( ).
         FIELD-SYMBOLS <row> TYPE ty_row.
         ASSIGN ls_result-row->* TO <row>.
         client->message_box_display( `callback after popup to select: ` && <row>-title ).

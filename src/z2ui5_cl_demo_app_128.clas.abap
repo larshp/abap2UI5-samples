@@ -22,7 +22,8 @@ CLASS z2ui5_cl_demo_app_128 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
      product_url = z2ui5_cl_demo_utility=>factory( client )->url_param_get(  `product` ).
 *    z2ui5_cl_demo_utility=>factory( client )->url_param_set( n = `product` v = `ABC` ).
     check_launchpad_active = client->get( )-check_launchpad_active.
@@ -38,12 +39,20 @@ CLASS z2ui5_cl_demo_app_128 IMPLEMENTATION.
 
 
 
+      DATA temp1 TYPE string_table.
+      CLEAR temp1.
+      INSERT `{ semanticObject: "Z2UI5_CL_DEMO_APP_127",  action: "Z2UI5_CL_DEMO_APP_127" }` INTO TABLE temp1.
+      INSERT `{ ProductID : "123234" }` INTO TABLE temp1.
+      DATA temp2 TYPE xsdboolean.
+      temp2 = boolc( abap_false = client->get( )-check_launchpad_active ).
+      DATA temp3 TYPE xsdboolean.
+      temp3 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
       client->view_display( view->shell(
             )->page(
-                    showheader       = xsdbool( abap_false = client->get( )-check_launchpad_active )
+                    showheader       = temp2
                     title          = 'abap2UI5 -  Cross App Navigation App 128'
                     navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                    shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                    shownavbutton = temp3
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
@@ -67,7 +76,7 @@ CLASS z2ui5_cl_demo_app_128 IMPLEMENTATION.
                             text  = 'go to app 127'
                             press = client->_event_client(
             val    = client->cs_event-cross_app_nav_to_ext
-            t_arg  = VALUE #( ( `{ semanticObject: "Z2UI5_CL_DEMO_APP_127",  action: "Z2UI5_CL_DEMO_APP_127" }` ) ( `{ ProductID : "123234" }`) )
+            t_arg  = temp1
         )
              )->stringify( ) ).
 

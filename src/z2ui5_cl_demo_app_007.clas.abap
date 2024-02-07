@@ -51,13 +51,48 @@ CLASS Z2UI5_CL_DEMO_APP_007 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      mt_tree = VALUE #( ( object = '1' categories = VALUE #( ( object = '1.1' categories = VALUE #( ( object = '1.1.1')
-                                                                                                     ( object = '1.1.2') ) )
-                                                                               ( object = '1.2' ) ) )
-                         ( object = '2' categories = VALUE #( ( object = '2.1' )
-                                                              ( object = '2.2' ) ) )
-                         ( object = '3' categories = VALUE #( ( object = '3.1' )
-                                                              ( object = '3.2' ) ) ) ).
+      DATA temp1 TYPE tt_tree_level1.
+      CLEAR temp1.
+      DATA temp2 LIKE LINE OF temp1.
+      temp2-object = '1'.
+      DATA temp3 TYPE tt_tree_level2.
+      CLEAR temp3.
+      DATA temp4 LIKE LINE OF temp3.
+      temp4-object = '1.1'.
+      DATA temp9 TYPE tt_tree_level3.
+      CLEAR temp9.
+      DATA temp10 LIKE LINE OF temp9.
+      temp10-object = '1.1.1'.
+      INSERT temp10 INTO TABLE temp9.
+      temp10-object = '1.1.2'.
+      INSERT temp10 INTO TABLE temp9.
+      temp4-categories = temp9.
+      INSERT temp4 INTO TABLE temp3.
+      temp4-object = '1.2'.
+      INSERT temp4 INTO TABLE temp3.
+      temp2-categories = temp3.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-object = '2'.
+      DATA temp5 TYPE tt_tree_level2.
+      CLEAR temp5.
+      DATA temp6 LIKE LINE OF temp5.
+      temp6-object = '2.1'.
+      INSERT temp6 INTO TABLE temp5.
+      temp6-object = '2.2'.
+      INSERT temp6 INTO TABLE temp5.
+      temp2-categories = temp5.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-object = '3'.
+      DATA temp7 TYPE tt_tree_level2.
+      CLEAR temp7.
+      DATA temp8 LIKE LINE OF temp7.
+      temp8-object = '3.1'.
+      INSERT temp8 INTO TABLE temp7.
+      temp8-object = '3.2'.
+      INSERT temp8 INTO TABLE temp7.
+      temp2-categories = temp7.
+      INSERT temp2 INTO TABLE temp1.
+      mt_tree = temp1.
     ENDIF.
 
     CASE client->get( )-event.
@@ -66,8 +101,10 @@ CLASS Z2UI5_CL_DEMO_APP_007 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDCASE.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(page) = view->shell(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell(
         )->page(
             title          = 'abap2UI5 - TreeTable'
             navbuttonpress = client->_event( 'BACK' )
@@ -79,7 +116,8 @@ CLASS Z2UI5_CL_DEMO_APP_007 IMPLEMENTATION.
                     href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
             )->get_parent( ).
 
-    DATA(tab) = page->tree_table(
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = page->tree_table(
       rows = `{path:'` && client->_bind( val = mt_tree path = abap_true ) && `', parameters: {arrayNames:['CATEGORIES']}}` ).
     tab->tree_columns(
     )->tree_column( label = 'Object'

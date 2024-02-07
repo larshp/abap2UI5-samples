@@ -32,7 +32,8 @@ CLASS Z2UI5_CL_DEMO_APP_109 IMPLEMENTATION.
 
   METHOD Z2UI5_DISPLAY_POPOVER.
 
-    DATA(view) = Z2UI5_cl_xml_view=>factory_popup( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = Z2UI5_cl_xml_view=>factory_popup( ).
     view->quick_view( placement = mv_placement
 *                      beforeclose = client->_event( val = `CLOSE_POPOVER` )
 *                      beforeclose = client->_event_client( client->cs_event-popover_close )
@@ -81,12 +82,15 @@ CLASS Z2UI5_CL_DEMO_APP_109 IMPLEMENTATION.
 
   METHOD Z2UI5_DISPLAY_VIEW.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
       )->page(
               title          = 'abap2UI5 - Popover Examples'
               navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-              shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+              shownavbutton = temp1
           )->header_content(
               )->link( text = 'Demo' target = '_blank' href = `https://twitter.com/abap2UI5/status/1643899059839672321`
               )->link(

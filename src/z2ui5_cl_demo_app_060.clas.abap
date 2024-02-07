@@ -4,7 +4,8 @@ CLASS Z2UI5_CL_DEMO_APP_060 DEFINITION PUBLIC.
 
     INTERFACES Z2UI5_if_app.
 
-    DATA mt_suggestion TYPE STANDARD TABLE OF I_CurrencyText.
+    TYPES temp1_4b9cee307e TYPE STANDARD TABLE OF I_CurrencyText.
+DATA mt_suggestion TYPE temp1_4b9cee307e.
     DATA input TYPE string.
 
   PROTECTED SECTION.
@@ -45,14 +46,22 @@ CLASS Z2UI5_CL_DEMO_APP_060 IMPLEMENTATION.
 
       WHEN 'ON_SUGGEST'.
 
-        DATA lt_range TYPE RANGE OF string.
-        lt_range = VALUE #( (  sign = 'I' option = 'CP' low = `*` && input && `*` ) ).
+        TYPES temp3 TYPE RANGE OF string.
+DATA lt_range TYPE temp3.
+        DATA temp1 LIKE lt_range.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-sign = 'I'.
+        temp2-option = 'CP'.
+        temp2-low = `*` && input && `*`.
+        INSERT temp2 INTO TABLE temp1.
+        lt_range = temp1.
 
-        SELECT FROM I_CurrencyText
-          FIELDS *
-          WHERE CurrencyName IN @lt_range
+        SELECT * FROM I_CurrencyText
+
+          WHERE CurrencyName IN lt_range
           AND  Language = 'E'
-          INTO CORRESPONDING FIELDS OF TABLE @mt_suggestion.
+          INTO CORRESPONDING FIELDS OF TABLE mt_suggestion.
 
        client->view_model_update( ).
 
@@ -66,20 +75,25 @@ CLASS Z2UI5_CL_DEMO_APP_060 IMPLEMENTATION.
 
   METHOD Z2UI5_view_display.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page = z2ui5_cl_xml_view=>factory( )->shell( )->page(
        title          = 'abap2UI5 - Live Suggestion Event'
        navbuttonpress = client->_event( 'BACK' )
-       shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ) ).
+       shownavbutton = temp1 ).
 
     page->header_content(
              )->link( text = 'Demo'        target = '_blank' href = `https://twitter.com/abap2UI5/status/1675074394710765568`
              )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12'
+    DATA grid TYPE REF TO z2ui5_cl_xml_view.
+    grid = page->grid( 'L6 M12 S12'
         )->content( 'layout' ).
 
-    DATA(input) = grid->simple_form( 'Input'
+    DATA input TYPE REF TO z2ui5_cl_xml_view.
+    input = grid->simple_form( 'Input'
         )->content( 'form'
             )->label( 'Input with value help'
             )->input(

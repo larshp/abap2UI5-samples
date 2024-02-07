@@ -81,12 +81,15 @@ CLASS z2ui5_cl_demo_app_153 IMPLEMENTATION.
         custom_mapper_back = z2ui5_cl_ajson_mapping=>create_to_snake_case(  )
      ).
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
         )->page(
                 title          = 'abap2UI5 - Binding'
                 navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'
@@ -144,14 +147,31 @@ CLASS z2ui5_cl_demo_app_153 IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
 
-      ms_struc-data-labels = VALUE #( ( `Jan` ) ( `Feb` ) ( `Mar` ) ( `Apr` ) ( `May` ) ( `Jun` ) ).
+      DATA temp1 TYPE string_table.
+      CLEAR temp1.
+      INSERT `Jan` INTO TABLE temp1.
+      INSERT `Feb` INTO TABLE temp1.
+      INSERT `Mar` INTO TABLE temp1.
+      INSERT `Apr` INTO TABLE temp1.
+      INSERT `May` INTO TABLE temp1.
+      INSERT `Jun` INTO TABLE temp1.
+      ms_struc-data-labels = temp1.
 
       CLEAR ls_dataset.
       ls_dataset-label = 'Fully Rounded'.
       ls_dataset-border_width = 2.
       ls_dataset-border_radius = 200.
 *      ls_dataset-border_skipped = abap_true.
-      ls_dataset-data = VALUE #( ( `1` ) ( `-12` ) ( `19` ) ( `3` ) ( `5` ) ( `-2` ) ( `3` ) ).
+      DATA temp3 TYPE string_table.
+      CLEAR temp3.
+      INSERT `1` INTO TABLE temp3.
+      INSERT `-12` INTO TABLE temp3.
+      INSERT `19` INTO TABLE temp3.
+      INSERT `3` INTO TABLE temp3.
+      INSERT `5` INTO TABLE temp3.
+      INSERT `-2` INTO TABLE temp3.
+      INSERT `3` INTO TABLE temp3.
+      ls_dataset-data = temp3.
 
 
       "new value in lvl2

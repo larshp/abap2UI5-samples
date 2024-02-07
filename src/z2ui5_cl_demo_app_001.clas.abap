@@ -25,12 +25,15 @@ CLASS Z2UI5_CL_DEMO_APP_001 IMPLEMENTATION.
       product  = 'tomato'.
       quantity = '500'.
 
-      DATA(view) = Z2UI5_cl_xml_view=>factory( ).
+      DATA view TYPE REF TO z2ui5_cl_xml_view.
+      view = Z2UI5_cl_xml_view=>factory( ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
       client->view_display( view->shell(
             )->page(
                     title          = 'abap2UI5 - First Example'
                     navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                    shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                    shownavbutton = temp1
                 )->header_content(
                     )->link(
                         text = 'Source_Code'

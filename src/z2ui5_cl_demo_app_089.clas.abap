@@ -81,8 +81,22 @@ CLASS Z2UI5_CL_DEMO_APP_089 IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD Z2UI5_view_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(tool_page) = view->shell( )->tool_page(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE string_table.
+    CLEAR temp1.
+    INSERT `NavCon` INTO TABLE temp1.
+    INSERT `page1` INTO TABLE temp1.
+    DATA temp2 TYPE string_table.
+    CLEAR temp2.
+    INSERT `NavCon` INTO TABLE temp2.
+    INSERT `page2` INTO TABLE temp2.
+    DATA temp3 TYPE string_table.
+    CLEAR temp3.
+    INSERT `NavCon` INTO TABLE temp3.
+    INSERT `page3` INTO TABLE temp3.
+    DATA tool_page TYPE REF TO z2ui5_cl_xml_view.
+    tool_page = view->shell( )->tool_page(
                           )->header( ns = `tnt`
                             )->tool_header(
                                      )->button( text = `Back` press = client->_event( 'BACK' )
@@ -131,9 +145,9 @@ CLASS Z2UI5_CL_DEMO_APP_089 IMPLEMENTATION.
                                          )->icon_tab_filter( key = `page33` text = `User 3`
                                       )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent(
                                 )->main_contents(
-                                )->button( text = `page1` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = value #( ( `NavCon` ) ( `page1` ) ) )
-                                )->button( text = `page2` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = value #( ( `NavCon` ) ( `page2` ) ) )
-                                )->button( text = `page3` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = value #( ( `NavCon` ) ( `page3` ) ) )
+                                )->button( text = `page1` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = temp1 )
+                                )->button( text = `page2` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = temp2 )
+                                )->button( text = `page3` press = client->_event_client( val = client->cs_event-nav_container_to t_arg  = temp3 )
                                   )->nav_container( id = `NavCon` initialPage = mv_page defaulttransitionname = `flip`
                                      )->pages(
                                      )->page(

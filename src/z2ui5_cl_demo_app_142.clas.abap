@@ -57,7 +57,9 @@ CLASS Z2UI5_CL_DEMO_APP_142 IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'GO_TO_EDITOR'.
-        client->nav_app_call( NEW z2ui5_cl_demo_app_145( b64_image = mv_value filename = mv_path ) ).
+        DATA temp1 TYPE REF TO z2ui5_cl_demo_app_145.
+        CREATE OBJECT temp1 TYPE z2ui5_cl_demo_app_145 EXPORTING b64_image = mv_value filename = mv_path.
+        client->nav_app_call( temp1 ).
       WHEN 'START'.
         z2ui5_on_rendering( client ).
       WHEN 'BACK'.
@@ -86,11 +88,15 @@ CLASS Z2UI5_CL_DEMO_APP_142 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = view->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( abap_false = client->get( )-check_launchpad_active ).
+    page = view->shell(
          )->page(
-          showheader       = xsdbool( abap_false = client->get( )-check_launchpad_active )
+          showheader       = temp1
             title          = 'abap2UI5 - imagemap demo'
             navbuttonpress = client->_event( 'BACK' )
             enablescrolling = abap_false

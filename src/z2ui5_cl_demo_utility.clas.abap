@@ -146,8 +146,12 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
   METHOD rtti_get_type_name.
 
-    DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
-    DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+    lo_descr = cl_abap_elemdescr=>describe_by_data( val ).
+    DATA temp1 TYPE REF TO cl_abap_elemdescr.
+    temp1 ?= lo_descr.
+    DATA lo_ele LIKE temp1.
+    lo_ele = temp1.
     result  = lo_ele->get_relative_name( ).
 
   ENDMETHOD.
@@ -155,7 +159,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
  METHOD boolean_check.
 
     TRY.
-        DATA(lv_type_name) = rtti_get_type_name( val ).
+        DATA lv_type_name TYPE string.
+        lv_type_name = rtti_get_type_name( val ).
         CASE lv_type_name.
           WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
             result = abap_true.
@@ -167,8 +172,14 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
   METHOD boolean_abap_2_json.
 
-    IF boolean_check( val ).
-      result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
+    IF boolean_check( val ) IS NOT INITIAL.
+      DATA temp2 TYPE string.
+      IF val = abap_true.
+        temp2 = `true`.
+      ELSE.
+        temp2 = `false`.
+      ENDIF.
+      result = temp2.
     ELSE.
       result = val.
     ENDIF.
@@ -177,7 +188,7 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = new #( ).
+    CREATE OBJECT r_result.
     r_result->mi_client = client.
 
   ENDMETHOD.
@@ -216,7 +227,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
           CATCH cx_sy_dyn_call_illegal_class.
 
-            DATA(lv_fm) = `GUID_CREATE`.
+            DATA lv_fm TYPE string.
+            lv_fm = `GUID_CREATE`.
             CALL FUNCTION lv_fm
               IMPORTING
                 ev_guid_32 = uuid.
@@ -289,21 +301,42 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
   METHOD get_table_by_csv.
 
-    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
-    SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
+    DATA lt_rows TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE lt_rows.
+    DATA lt_cols TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA temp1 LIKE LINE OF lt_rows.
+    DATA temp2 LIKE sy-tabix.
+    temp2 = sy-tabix.
+    READ TABLE lt_rows INDEX 1 INTO temp1.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+    ENDIF.
+    SPLIT temp1 AT ';' INTO TABLE lt_cols.
 
     DATA lt_comp TYPE cl_abap_structdescr=>component_table.
-    LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
+    DATA temp3 LIKE LINE OF lt_cols.
+    DATA lr_col LIKE REF TO temp3.
+    LOOP AT lt_cols REFERENCE INTO lr_col.
 
-      DATA(lv_name) =  trim_upper( lr_col->* ).
+      DATA lv_name TYPE string.
+      lv_name =  trim_upper( lr_col->* ).
       REPLACE ` ` IN lv_name WITH `_`.
 
-      INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
+      DATA temp4 TYPE abap_componentdescr.
+      CLEAR temp4.
+      temp4-name = lv_name.
+      temp4-type = cl_abap_elemdescr=>get_c( 40 ).
+      INSERT temp4 INTO TABLE lt_comp.
     ENDLOOP.
 
-    DATA(struc) = cl_abap_structdescr=>get( lt_comp ).
-    DATA(o_table_desc) = cl_abap_tabledescr=>create(
-          p_line_type  = CAST #( struc )
+    DATA struc TYPE REF TO cl_abap_structdescr.
+    struc = cl_abap_structdescr=>get( lt_comp ).
+    DATA temp5 TYPE REF TO cl_abap_datadescr.
+    temp5 ?= struc.
+    DATA o_table_desc TYPE REF TO cl_abap_tabledescr.
+    o_table_desc = cl_abap_tabledescr=>create(
+          p_line_type  = temp5
           p_table_kind = cl_abap_tabledescr=>tablekind_std
           p_unique     = abap_false ).
 
@@ -313,15 +346,19 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
     DELETE lt_rows WHERE table_line IS INITIAL.
 
-    LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
+    DATA temp6 LIKE LINE OF lt_rows.
+    DATA lr_rows LIKE REF TO temp6.
+    LOOP AT lt_rows REFERENCE INTO lr_rows FROM 2.
 
       SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
       DATA lr_row TYPE REF TO data.
       CREATE DATA lr_row TYPE HANDLE struc.
 
       LOOP AT lt_cols REFERENCE INTO lr_col.
-        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        FIELD-SYMBOLS <row> TYPE any.
+        ASSIGN lr_row->* TO <row>.
+        FIELD-SYMBOLS <field> TYPE any.
+        ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO <field>.
         <field> = lr_col->*.
       ENDLOOP.
 
@@ -343,7 +380,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
       CATCH cx_sy_dyn_call_illegal_class.
 
-        DATA(classname) = 'CL_HTTP_UTILITY'.
+        DATA classname TYPE c LENGTH 15.
+        classname = 'CL_HTTP_UTILITY'.
         CALL METHOD (classname)=>('DECODE_X_BASE64')
           EXPORTING
             encoded = val
@@ -367,7 +405,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
       CATCH cx_sy_dyn_call_illegal_class.
 
-        DATA(classname) = 'CL_HTTP_UTILITY'.
+        DATA classname TYPE c LENGTH 15.
+        classname = 'CL_HTTP_UTILITY'.
         CALL METHOD (classname)=>('ENCODE_X_BASE64')
           EXPORTING
             unencoded = val
@@ -385,11 +424,21 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
     DATA lr_row TYPE REF TO data.
 
-    DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+    DATA temp7 TYPE REF TO cl_abap_tabledescr.
+    temp7 ?= cl_abap_typedescr=>describe_by_data( <tab> ).
+    DATA tab LIKE temp7.
+    tab = temp7.
 
-    DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
+    DATA temp8 TYPE REF TO cl_abap_structdescr.
+    temp8 ?= tab->get_table_line_type( ).
+    DATA struc LIKE temp8.
+    struc = temp8.
 
-    LOOP AT struc->get_components( ) REFERENCE INTO DATA(lr_comp).
+    DATA temp9 TYPE abap_component_tab.
+    temp9 = struc->get_components( ).
+    DATA temp3 LIKE LINE OF temp9.
+    DATA lr_comp LIKE REF TO temp3.
+    LOOP AT temp9 REFERENCE INTO lr_comp.
       result = result && lr_comp->name && ';'.
     ENDLOOP.
 
@@ -397,10 +446,13 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
     LOOP AT <tab> REFERENCE INTO lr_row.
 
-      DATA(lv_index) = 1.
+      DATA lv_index TYPE i.
+      lv_index = 1.
       DO.
-        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        FIELD-SYMBOLS <row> TYPE any.
+        ASSIGN lr_row->* TO <row>.
+        FIELD-SYMBOLS <field> TYPE any.
+        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO <field>.
         IF sy-subrc <> 0.
           EXIT.
         ENDIF.
@@ -442,12 +494,20 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
 
   METHOD get_fieldlist_by_table.
 
-    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( it_table ) ).
-    DATA(lo_struc) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+    DATA temp10 TYPE REF TO cl_abap_tabledescr.
+    temp10 ?= cl_abap_datadescr=>describe_by_data( it_table ).
+    DATA lo_tab LIKE temp10.
+    lo_tab = temp10.
+    DATA temp11 TYPE REF TO cl_abap_structdescr.
+    temp11 ?= lo_tab->get_table_line_type( ).
+    DATA lo_struc LIKE temp11.
+    lo_struc = temp11.
 
-    DATA(lt_comp) = lo_struc->get_components( ).
+    DATA lt_comp TYPE abap_component_tab.
+    lt_comp = lo_struc->get_components( ).
 
-    LOOP AT lt_comp INTO DATA(ls_comp).
+    DATA ls_comp LIKE LINE OF lt_comp.
+    LOOP AT lt_comp INTO ls_comp.
       INSERT ls_comp-name INTO TABLE result.
     ENDLOOP.
 
@@ -469,7 +529,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
             result = result.
       CATCH cx_sy_dyn_call_illegal_class.
 
-        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+        DATA conv_in_class TYPE c LENGTH 18.
+        conv_in_class = 'CL_ABAP_CONV_IN_CE'.
         CALL METHOD (conv_in_class)=>create
           EXPORTING
             encoding = 'UTF-8'
@@ -501,7 +562,8 @@ CLASS z2ui5_cl_demo_utility IMPLEMENTATION.
             result = result.
       CATCH cx_sy_dyn_call_illegal_class.
 
-        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
+        DATA conv_out_class TYPE c LENGTH 19.
+        conv_out_class = 'CL_ABAP_CONV_OUT_CE'.
         CALL METHOD (conv_out_class)=>create
           EXPORTING
             encoding = 'UTF-8'

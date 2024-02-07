@@ -63,9 +63,11 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
 
   METHOD view_display_detail.
 
-    DATA(lo_view_nested) = z2ui5_cl_xml_view=>factory( ).
+    DATA lo_view_nested TYPE REF TO z2ui5_cl_xml_view.
+    lo_view_nested = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = lo_view_nested->page( title = `Nested View` ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = lo_view_nested->page( title = `Nested View` ).
 
     page->button( text = 'event' press = client->_event( 'UPDATE_DETAIL' )
     )->input( id = `inputNest`
@@ -96,9 +98,11 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
 
   METHOD view_display_master.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
     view->_z2ui5( )->messaging( client->_bind_edit( mt_messaging ) ).
-    DATA(page) = view->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell(
         )->page(
            title          = 'abap2UI5 - Master Detail Page with Nested View'
            navbuttonpress = client->_event( 'BACK' )
@@ -109,12 +113,15 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
              )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(col_layout) =  page->flexible_column_layout( layout = 'TwoColumnsBeginExpanded' id ='test' ).
+    DATA col_layout TYPE REF TO z2ui5_cl_xml_view.
+    col_layout =  page->flexible_column_layout( layout = 'TwoColumnsBeginExpanded' id ='test' ).
 
-    DATA(lr_master) = col_layout->begin_column_pages( ).
+    DATA lr_master TYPE REF TO z2ui5_cl_xml_view.
+    lr_master = col_layout->begin_column_pages( ).
 
     client->_bind( mt_tree ).
-    DATA(tab) = lr_master->vbox( )->tree_table(
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = lr_master->vbox( )->tree_table(
       rows = `{path:'/MT_TREE', parameters: {arrayNames:['CATEGORIES']}}` ).
     tab->tree_columns(
     )->tree_column( label = 'Object'
@@ -149,7 +156,8 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      DATA(view) = z2ui5_cl_xml_view=>factory( ).
+      DATA view TYPE REF TO z2ui5_cl_xml_view.
+      view = z2ui5_cl_xml_view=>factory( ).
       client->view_display(
         view->_generic( ns = `html` name = `script` )->_cc_plain_xml( z2ui5_cl_cc_messaging=>get_js( )
             )->_z2ui5( )->timer( client->_event( `ON_CC_LOADED` )
@@ -164,13 +172,48 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
         view_display_master(  ).
         view_display_detail(  ).
 
-        mt_tree = VALUE #( ( object = '1' categories = VALUE #( ( object = '1.1' categories = VALUE #( ( object = '1.1.1')
-                                                                                                       ( object = '1.1.2') ) )
-                                                                                 ( object = '1.2' ) ) )
-                           ( object = '2' categories = VALUE #( ( object = '2.1' )
-                                                                ( object = '2.2' ) ) )
-                           ( object = '3' categories = VALUE #( ( object = '3.1' )
-                                                                ( object = '3.2' ) ) ) ).
+        DATA temp1 TYPE tt_tree_level1.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-object = '1'.
+        DATA temp3 TYPE tt_tree_level2.
+        CLEAR temp3.
+        DATA temp4 LIKE LINE OF temp3.
+        temp4-object = '1.1'.
+        DATA temp9 TYPE tt_tree_level3.
+        CLEAR temp9.
+        DATA temp10 LIKE LINE OF temp9.
+        temp10-object = '1.1.1'.
+        INSERT temp10 INTO TABLE temp9.
+        temp10-object = '1.1.2'.
+        INSERT temp10 INTO TABLE temp9.
+        temp4-categories = temp9.
+        INSERT temp4 INTO TABLE temp3.
+        temp4-object = '1.2'.
+        INSERT temp4 INTO TABLE temp3.
+        temp2-categories = temp3.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-object = '2'.
+        DATA temp5 TYPE tt_tree_level2.
+        CLEAR temp5.
+        DATA temp6 LIKE LINE OF temp5.
+        temp6-object = '2.1'.
+        INSERT temp6 INTO TABLE temp5.
+        temp6-object = '2.2'.
+        INSERT temp6 INTO TABLE temp5.
+        temp2-categories = temp5.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-object = '3'.
+        DATA temp7 TYPE tt_tree_level2.
+        CLEAR temp7.
+        DATA temp8 LIKE LINE OF temp7.
+        temp8-object = '3.1'.
+        INSERT temp8 INTO TABLE temp7.
+        temp8-object = '3.2'.
+        INSERT temp8 INTO TABLE temp7.
+        temp2-categories = temp7.
+        INSERT temp2 INTO TABLE temp1.
+        mt_tree = temp1.
 
       WHEN `UPDATE_DETAIL`.
         view_display_detail(  ).
@@ -180,8 +223,12 @@ CLASS z2ui5_cl_demo_app_066 IMPLEMENTATION.
         client->message_toast_display( mv_input_master ).
       WHEN `NEST_TEST`.
 
-        mv_check_enabled_01 = xsdbool( mv_check_enabled_01 = abap_false ).
-        mv_check_enabled_02 = xsdbool( mv_check_enabled_01 = abap_false ).
+        DATA temp11 TYPE xsdboolean.
+        temp11 = boolc( mv_check_enabled_01 = abap_false ).
+        mv_check_enabled_01 = temp11.
+        DATA temp12 TYPE xsdboolean.
+        temp12 = boolc( mv_check_enabled_01 = abap_false ).
+        mv_check_enabled_02 = temp12.
 
         client->message_toast_display( mv_input_detail ).
 

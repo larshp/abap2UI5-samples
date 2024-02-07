@@ -15,7 +15,7 @@ CLASS z2ui5_cl_demo_app_146 DEFINITION
 
     DATA check_initialized TYPE abap_bool .
     DATA:
-      t_tab TYPE TABLE OF ty_tab WITH EMPTY KEY .
+      t_tab TYPE TABLE OF ty_tab WITH DEFAULT KEY .
   PROTECTED SECTION.
 
     METHODS z2ui5_on_rendering
@@ -63,53 +63,123 @@ CLASS Z2UI5_CL_DEMO_APP_146 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_init.
-    t_tab = VALUE #(
-                    ( text = `bounce` class = `animate__animated animate__bounce` )
-                    ( text = `flash` class = `animate__animated animate__flash` )
-                    ( text = `pulse` class = `animate__animated animate__pulse` )
-                    ( text = `rubberBand` class = `animate__animated animate__rubberBand` )
-                    ( text = `shakeX` class = `animate__animated animate__shakeX` )
-                    ( text = `shakeY` class = `animate__animated animate__shakeY` )
-                    ( text = `headShake` class = `animate__animated animate__headShake` )
-                    ( text = `swing` class = `animate__animated animate__swing` )
-                    ( text = `tada` class = `animate__animated animate__tada` )
-                    ( text = `wobble` class = `animate__animated animate__wobble` )
-                    ( text = `jello` class = `animate__animated animate__jello` )
-                    ( text = `heartBeat` class = `animate__animated animate__heartBeat` )
-                    ( text = `backInDown` class = `animate__animated animate__backInDown` )
-                    ( text = `backInLeft` class = `animate__animated animate__backInLeft` )
-                    ( text = `backInRight` class = `animate__animated animate__backInRight` )
-                    ( text = `backInUp` class = `animate__animated animate__backInUp` )
-                    ( text = `backOutDown` class = `animate__animated animate__backOutDown` )
-                    ( text = `backOutLeft` class = `animate__animated animate__backOutLeft` )
-                    ( text = `backOutRight` class = `animate__animated animate__backOutRight` )
-                    ( text = `backOutUp` class = `animate__animated animate__backOutUp` )
-                    ( text = `bounceIn` class = `animate__animated animate__bounceIn` )
-                    ( text = `bounceInDown` class = `animate__animated animate__bounceInDown` )
-                    ( text = `bounceInLeft` class = `animate__animated animate__bounceInLeft` )
-                    ( text = `bounceInRight` class = `animate__animated animate__bounceInRight` )
-                    ( text = `bounceInUp` class = `animate__animated animate__bounceInUp` )
-                    ( text = `bounceOut` class = `animate__animated animate__bounceOut` )
-                    ( text = `bounceOutDown` class = `animate__animated animate__bounceOutDown` )
-                    ( text = `bounceOutLeft` class = `animate__animated animate__bounceOutLeft` )
-                    ( text = `bounceOutRight` class = `animate__animated animate__bounceOutRight` )
-                    ( text = `bounceOutUp` class = `animate__animated animate__bounceOutUp` )
-                    ( text = `fadeIn` class = `animate__animated animate__fadeIn` )
-                    ( text = `fadeInDown` class = `animate__animated animate__fadeInDown` )
-                   ).
+    DATA temp1 LIKE t_tab.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-text = `bounce`.
+    temp2-class = `animate__animated animate__bounce`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `flash`.
+    temp2-class = `animate__animated animate__flash`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `pulse`.
+    temp2-class = `animate__animated animate__pulse`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `rubberBand`.
+    temp2-class = `animate__animated animate__rubberBand`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `shakeX`.
+    temp2-class = `animate__animated animate__shakeX`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `shakeY`.
+    temp2-class = `animate__animated animate__shakeY`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `headShake`.
+    temp2-class = `animate__animated animate__headShake`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `swing`.
+    temp2-class = `animate__animated animate__swing`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `tada`.
+    temp2-class = `animate__animated animate__tada`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `wobble`.
+    temp2-class = `animate__animated animate__wobble`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `jello`.
+    temp2-class = `animate__animated animate__jello`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `heartBeat`.
+    temp2-class = `animate__animated animate__heartBeat`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backInDown`.
+    temp2-class = `animate__animated animate__backInDown`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backInLeft`.
+    temp2-class = `animate__animated animate__backInLeft`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backInRight`.
+    temp2-class = `animate__animated animate__backInRight`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backInUp`.
+    temp2-class = `animate__animated animate__backInUp`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backOutDown`.
+    temp2-class = `animate__animated animate__backOutDown`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backOutLeft`.
+    temp2-class = `animate__animated animate__backOutLeft`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backOutRight`.
+    temp2-class = `animate__animated animate__backOutRight`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `backOutUp`.
+    temp2-class = `animate__animated animate__backOutUp`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceIn`.
+    temp2-class = `animate__animated animate__bounceIn`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceInDown`.
+    temp2-class = `animate__animated animate__bounceInDown`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceInLeft`.
+    temp2-class = `animate__animated animate__bounceInLeft`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceInRight`.
+    temp2-class = `animate__animated animate__bounceInRight`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceInUp`.
+    temp2-class = `animate__animated animate__bounceInUp`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceOut`.
+    temp2-class = `animate__animated animate__bounceOut`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceOutDown`.
+    temp2-class = `animate__animated animate__bounceOutDown`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceOutLeft`.
+    temp2-class = `animate__animated animate__bounceOutLeft`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceOutRight`.
+    temp2-class = `animate__animated animate__bounceOutRight`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `bounceOutUp`.
+    temp2-class = `animate__animated animate__bounceOutUp`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `fadeIn`.
+    temp2-class = `animate__animated animate__fadeIn`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-text = `fadeInDown`.
+    temp2-class = `animate__animated animate__fadeInDown`.
+    INSERT temp2 INTO TABLE temp1.
+    t_tab = temp1.
   ENDMETHOD.
 
 
   METHOD z2ui5_on_rendering.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
     view->_generic( name = `style` ns = `html` )->_cc_plain_xml( z2ui5_cl_cc_animatecss=>load_css( ) )->get_parent( ).
 
-    DATA(page) = view->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( abap_false = client->get( )-check_launchpad_active ).
+    page = view->shell(
          )->page(
-          showheader       = xsdbool( abap_false = client->get( )-check_launchpad_active )
+          showheader       = temp1
             title          = 'abap2UI5 - animate.css demo'
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true ).
@@ -121,13 +191,15 @@ CLASS Z2UI5_CL_DEMO_APP_146 IMPLEMENTATION.
          )->get_parent( ).
 
 
-    DATA(items) = page->table( mode = `None`
+    DATA items TYPE REF TO z2ui5_cl_xml_view.
+    items = page->table( mode = `None`
             )->columns(
                 )->column( )->text( 'Text in label control' )->get_parent(
                 )->column( )->text( 'Class Value' )->get_parent(
             )->get_parent(
             )->items( ).
-    LOOP AT t_tab INTO DATA(ls_tab).
+    DATA ls_tab LIKE LINE OF t_tab.
+    LOOP AT t_tab INTO ls_tab.
       items->column_list_item( )->cells( )->label( text = ls_tab-text class = ls_tab-class
         )->label( text = ls_tab-class ).
     ENDLOOP.

@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_DEMO_APP_095 IMPLEMENTATION.
 
   METHOD on_init_sub.
 
-    mo_app_sub = new #( ).
+    CREATE OBJECT mo_app_sub.
     mo_app_sub->mo_view_parent = mo_grid_sub.
     mo_app_sub->Z2UI5_if_app~main( client = client ).
 
@@ -99,10 +99,12 @@ CLASS Z2UI5_CL_DEMO_APP_095 IMPLEMENTATION.
        )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( ) ).
 
 
-    DATA(o_grid) = page->grid( 'L6 M12 S12'
+    DATA o_grid TYPE REF TO z2ui5_cl_xml_view.
+    o_grid = page->grid( 'L6 M12 S12'
         )->content( 'layout' ).
 
-    DATA(content) = o_grid->simple_form( title = 'Input'
+    DATA content TYPE REF TO z2ui5_cl_xml_view.
+    content = o_grid->simple_form( title = 'Input'
           )->content( 'form' ).
     content->label( 'main app'
       )->input(

@@ -16,7 +16,8 @@ CLASS Z2UI5_CL_DEMO_APP_006 DEFINITION PUBLIC.
         valueColor TYPE string,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    TYPES temp1_34fadc8960 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA t_tab TYPE temp1_34fadc8960.
     DATA check_initialized TYPE abap_bool.
     DATA mv_key TYPE string.
     METHODS refresh_data.
@@ -33,12 +34,29 @@ CLASS Z2UI5_CL_DEMO_APP_006 IMPLEMENTATION.
   METHOD refresh_data.
 
     DO 5000 TIMES.
-      DATA(ls_row) = VALUE ty_row( count = sy-index  value = 'red'
-        info = COND #( WHEN sy-index < 50 THEN 'completed' ELSE 'uncompleted' )
-        descr = 'this is a description' checkbox = abap_true
-        percentage = COND #( WHEN sy-index <= 100 THEN sy-index ELSE '100' )
-        valuecolor = `Good`
-        ).
+      DATA temp1 TYPE ty_row.
+      CLEAR temp1.
+      temp1-count = sy-index.
+      temp1-value = 'red'.
+      DATA temp2 TYPE ty_row-info.
+      IF sy-index < 50.
+        temp2 = 'completed'.
+      ELSE.
+        temp2 = 'uncompleted'.
+      ENDIF.
+      temp1-info = temp2.
+      temp1-descr = 'this is a description'.
+      temp1-checkbox = abap_true.
+      DATA temp3 TYPE ty_row-percentage.
+      IF sy-index <= 100.
+        temp3 = sy-index.
+      ELSE.
+        temp3 = '100'.
+      ENDIF.
+      temp1-percentage = temp3.
+      temp1-valuecolor = `Good`.
+      DATA ls_row LIKE temp1.
+      ls_row = temp1.
       INSERT ls_row INTO TABLE t_tab.
     ENDDO.
 
@@ -79,19 +97,24 @@ CLASS Z2UI5_CL_DEMO_APP_006 IMPLEMENTATION.
 
     ENDCASE.
 
-    data(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(page) = view->shell(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page = view->shell(
         )->page(
             title          = 'abap2UI5 - Scroll Container with Table and Toolbar'
             navbuttonpress = client->_event( 'BACK' )
-            shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+            shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'  target = '_blank'
                     href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
         )->get_parent( ).
 
-    DATA(tab) = page->scroll_container( height = '70%' vertical = abap_true
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = page->scroll_container( height = '70%' vertical = abap_true
         )->table(
             growing             = abap_true
             growingthreshold    = '20'

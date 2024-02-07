@@ -41,7 +41,15 @@ CLASS z2ui5_cl_demo_app_102 IMPLEMENTATION.
       mv_scale_y = `7`.
 
       mt_barcode = z2ui5_cl_cc_bwipjs=>get_t_barcode_types( ).
-      ms_barcode = mt_barcode[ 1 ].
+      DATA temp1 LIKE LINE OF mt_barcode.
+      DATA temp2 LIKE sy-tabix.
+      temp2 = sy-tabix.
+      READ TABLE mt_barcode INDEX 1 INTO temp1.
+      sy-tabix = temp2.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+      ENDIF.
+      ms_barcode = temp1.
 
       view_display( client = client check_init = abap_false ).
 
@@ -50,7 +58,15 @@ CLASS z2ui5_cl_demo_app_102 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `BUTTON_CHANGE`.
-        ms_barcode = mt_barcode[ sym = ms_barcode-sym ].
+        DATA temp3 LIKE LINE OF mt_barcode.
+        DATA temp4 LIKE sy-tabix.
+        temp4 = sy-tabix.
+        READ TABLE mt_barcode WITH KEY sym = ms_barcode-sym INTO temp3.
+        sy-tabix = temp4.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        ms_barcode = temp3.
         client->view_model_update( ).
 
       WHEN `BUTTON_POST`.
@@ -66,13 +82,19 @@ CLASS z2ui5_cl_demo_app_102 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(cont) = view->shell(
-      )->page(  showheader       = xsdbool( abap_false = client->get( )-check_launchpad_active )
+    DATA cont TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( abap_false = client->get( )-check_launchpad_active ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    cont = view->shell(
+      )->page(  showheader       = temp1
                 title          = 'abap2UI5 - Barcode Library'
                navbuttonpress = client->_event( 'BACK' )
-               shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+               shownavbutton = temp2
               )->header_content(
                   )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
           )->get_parent(
@@ -119,12 +141,14 @@ CLASS z2ui5_cl_demo_app_102 IMPLEMENTATION.
     IF check_init = abap_false.
          cont->_generic( ns = `html` name = `script` )->_cc_plain_xml( z2ui5_cl_cc_bwipjs=>get_js( ) ).
     ELSE.
+      DATA temp5 TYPE string.
+      temp5 = mv_scale_y + mv_scale_x.
       cont->simple_form( title    = 'Barcode' editable = abap_true
            )->_z2ui5( )->bwip_js(
               bcid = ms_barcode-sym
               text = ms_barcode-text
               scale = mv_scale_x
-              height = conv string( mv_scale_y + mv_scale_x )
+              height = temp5
 
               ).
     ENDIF.

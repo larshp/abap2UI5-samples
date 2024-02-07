@@ -82,12 +82,16 @@ CLASS Z2UI5_CL_DEMO_APP_027 IMPLEMENTATION.
 
   METHOD Z2UI5_on_render.
 
-    data(view) = z2ui5_cl_xml_view=>factory( ).
-    data(lv_xml) = view->shell(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA lv_xml TYPE string.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    lv_xml = view->shell(
       )->page(
               title          = 'abap2UI5 - Binding Syntax'
               navbuttonpress = client->_event( 'BACK' )
-              shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+              shownavbutton = temp1
           )->header_content(
               )->link( text = `Demo` target = `_blank` href = `https://twitter.com/abap2UI5/status/1647889242545111043`
               )->link(

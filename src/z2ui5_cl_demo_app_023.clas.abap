@@ -76,13 +76,15 @@ CLASS z2ui5_cl_demo_app_023 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
-    DATA(lo_view) = z2ui5_cl_xml_view=>factory( ).
+    DATA lo_view TYPE REF TO z2ui5_cl_xml_view.
+    lo_view = z2ui5_cl_xml_view=>factory( ).
 
     CASE app-view_main.
 
       WHEN 'XML'.
 
-        DATA(lv_xml) = `<mvc:View displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
+        DATA lv_xml TYPE string.
+        lv_xml = `<mvc:View displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
     `re.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
     &&
                               `  title="abap2UI5 - XML XML XML" ` && |\n|  &&
@@ -117,11 +119,14 @@ CLASS z2ui5_cl_demo_app_023 IMPLEMENTATION.
 
       WHEN 'NORMAL'.
 
-        DATA(lv_view_normal_xml) = z2ui5_cl_ui5=>_factory( )->_ns_m(
+        DATA lv_view_normal_xml TYPE string.
+        DATA temp15 TYPE xsdboolean.
+        temp15 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+        lv_view_normal_xml = z2ui5_cl_ui5=>_factory( )->_ns_m(
             )->page(
                     title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
                     navbuttonpress = client->_event( 'BACK' )
-                    shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                    shownavbutton = temp15
                 )->headercontent(
                     )->link(
                         text = 'Source_Code'
@@ -148,50 +153,99 @@ CLASS z2ui5_cl_demo_app_023 IMPLEMENTATION.
 
       WHEN 'GENERIC'.
 
-        DATA(lv_view_gen_xml) = z2ui5_cl_ui5=>_factory(
+        DATA temp1 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-n = `title`.
+        temp2-v = 'abap2UI5 - GENERIC GENERIC GENERIC'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-n = `showNavButton`.
+        temp2-v = `true`.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-n = `navButtonPress`.
+        temp2-v = client->_event( 'BACK' ).
+        INSERT temp2 INTO TABLE temp1.
+        DATA temp3 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp3.
+        DATA temp4 LIKE LINE OF temp3.
+        temp4-n = `title`.
+        temp4-v = 'title'.
+        INSERT temp4 INTO TABLE temp3.
+        DATA temp5 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp5.
+        DATA temp6 LIKE LINE OF temp5.
+        temp6-n = `text`.
+        temp6-v = 'quantity'.
+        INSERT temp6 INTO TABLE temp5.
+        DATA temp7 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp7.
+        DATA temp8 LIKE LINE OF temp7.
+        temp8-n = `value`.
+        temp8-v = client->_bind( quantity ).
+        INSERT temp8 INTO TABLE temp7.
+        DATA temp9 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp9.
+        DATA temp10 LIKE LINE OF temp9.
+        temp10-n = `text`.
+        temp10-v = `NORMAL`.
+        INSERT temp10 INTO TABLE temp9.
+        temp10-n = `press`.
+        temp10-v = client->_event( 'NORMAL' ).
+        INSERT temp10 INTO TABLE temp9.
+        DATA temp11 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp11.
+        DATA temp12 LIKE LINE OF temp11.
+        temp12-n = `text`.
+        temp12-v = `GENERIC`.
+        INSERT temp12 INTO TABLE temp11.
+        temp12-n = `press`.
+        temp12-v = client->_event( 'GENERIC' ).
+        INSERT temp12 INTO TABLE temp11.
+        DATA temp13 TYPE z2ui5_if_types=>ty_t_name_value.
+        CLEAR temp13.
+        DATA temp14 LIKE LINE OF temp13.
+        temp14-n = `text`.
+        temp14-v = `XML`.
+        INSERT temp14 INTO TABLE temp13.
+        temp14-n = `press`.
+        temp14-v = client->_event( 'XML' ).
+        INSERT temp14 INTO TABLE temp13.
+        DATA lv_view_gen_xml TYPE string.
+        lv_view_gen_xml = z2ui5_cl_ui5=>_factory(
            )->_add(
                 n   = 'Shell'
                 ns  = `sap.m`
            )->_add(
                 n   = `Page`
                 ns  = `sap.m`
-                t_p = VALUE #(
-                        ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
-                        ( n = `showNavButton`  v = `true` )
-                        ( n = `navButtonPress` v = client->_event( 'BACK' ) ) )
+                t_p = temp1
            )->_add(
                 n   = `SimpleForm`
                 ns  = `sap.ui.layout.form`
-                t_p = VALUE #( ( n = `title` v = 'title' ) )
+                t_p = temp3
            )->_add(
                 n  = `content`
                 ns = `sap.ui.layout.form`
            )->_add(
                 n   = `Label`
                 ns  = `sap.m`
-                t_p = VALUE #( ( n = `text` v = 'quantity' ) ) )->_go_up(
+                t_p = temp5 )->_go_up(
            )->_add(
                 n   = `Input`
                 ns  = `sap.m`
-                t_p = VALUE #( ( n = `value` v = client->_bind( quantity ) ) ) )->_go_up(
+                t_p = temp7 )->_go_up(
            )->_add(
                 n   = `Button`
                 ns  = `sap.m`
-                t_p = VALUE #(
-                        ( n = `text`  v = `NORMAL` )
-                        ( n = `press` v = client->_event( 'NORMAL' ) ) ) )->_go_up(
+                t_p = temp9 )->_go_up(
            )->_add(
                 n   = `Button`
                 ns  = `sap.m`
-                t_p = VALUE #(
-                        ( n = `text`  v = `GENERIC` )
-                        ( n = `press` v = client->_event( 'GENERIC' ) ) ) )->_go_up(
+                t_p = temp11 )->_go_up(
            )->_add(
                 n = `Button`
                 ns  = `sap.m`
-                t_p = VALUE #(
-                        ( n = `text`  v = `XML` )
-                        ( n = `press` v = client->_event( 'XML' ) ) )
+                t_p = temp13
            )->_stringify( ).
 
         client->view_display( lv_view_gen_xml ).

@@ -33,8 +33,8 @@ CLASS Z2UI5_CL_DEMO_APP_005 DEFINITION PUBLIC.
         selkz   TYPE abap_bool,
       END OF ty_s_token.
 
-    DATA mt_token            TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
-    DATA mt_token_sugg       TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
+    DATA mt_token            TYPE STANDARD TABLE OF ty_s_token WITH DEFAULT KEY.
+    DATA mt_token_sugg       TYPE STANDARD TABLE OF ty_s_token WITH DEFAULT KEY.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -50,29 +50,52 @@ CLASS Z2UI5_CL_DEMO_APP_005 IMPLEMENTATION.
     IF screen-check_initialized = abap_false.
       screen-check_initialized = abap_true.
 
-      mt_token = VALUE #(
-          ( key = 'VAL1' text = 'value_1' selkz = abap_true  visible = abap_true )
-          ( key = 'VAL3' text = 'value_3' selkz = abap_false visible = abap_true )
-          ( key = 'VAL4' text = 'value_4' selkz = abap_true )
-      ).
+      DATA temp1 LIKE mt_token.
+      CLEAR temp1.
+      DATA temp2 LIKE LINE OF temp1.
+      temp2-key = 'VAL1'.
+      temp2-text = 'value_1'.
+      temp2-selkz = abap_true.
+      temp2-visible = abap_true.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-key = 'VAL3'.
+      temp2-text = 'value_3'.
+      temp2-selkz = abap_false.
+      temp2-visible = abap_true.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-key = 'VAL4'.
+      temp2-text = 'value_4'.
+      temp2-selkz = abap_true.
+      INSERT temp2 INTO TABLE temp1.
+      mt_token = temp1.
 
-      mt_token_sugg = VALUE #(
-          ( key = 'VAL1' text = 'value_1' )
-          ( key = 'VAL2' text = 'value_2' )
-          ( key = 'VAL3' text = 'value_3' )
-          ( key = 'VAL4' text = 'value_4' )
-      ).
+      DATA temp3 LIKE mt_token_sugg.
+      CLEAR temp3.
+      DATA temp4 LIKE LINE OF temp3.
+      temp4-key = 'VAL1'.
+      temp4-text = 'value_1'.
+      INSERT temp4 INTO TABLE temp3.
+      temp4-key = 'VAL2'.
+      temp4-text = 'value_2'.
+      INSERT temp4 INTO TABLE temp3.
+      temp4-key = 'VAL3'.
+      temp4-text = 'value_3'.
+      INSERT temp4 INTO TABLE temp3.
+      temp4-key = 'VAL4'.
+      temp4-text = 'value_4'.
+      INSERT temp4 INTO TABLE temp3.
+      mt_token_sugg = temp3.
 
-      screen = VALUE #(
-         check_initialized = abap_true
-         check_is_active   = abap_true
-         colour            = 'BLUE'
-         combo_key         = 'GRAY'
-         segment_key       = 'GREEN'
-         date              = '07.12.22'
-         date_time         = '23.12.2022, 19:27:20'
-         time_start        = '05:24:00'
-         time_end          = '17:23:57' ).
+      CLEAR screen.
+      screen-check_initialized = abap_true.
+      screen-check_is_active = abap_true.
+      screen-colour = 'BLUE'.
+      screen-combo_key = 'GRAY'.
+      screen-segment_key = 'GREEN'.
+      screen-date = '07.12.22'.
+      screen-date_time = '23.12.2022, 19:27:20'.
+      screen-time_start = '05:24:00'.
+      screen-time_end = '17:23:57'.
 
       mv_textarea = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magn` &&
                       `a aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd` &&
@@ -87,7 +110,8 @@ CLASS Z2UI5_CL_DEMO_APP_005 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'BUTTON_ROUNDTRIP'.
-        DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
+        DATA lv_dummy TYPE c LENGTH 68.
+        lv_dummy = 'user pressed a button, your custom implementation can be called here'.
 
       WHEN 'BUTTON_MSG_BOX'.
         client->message_box_display(
@@ -99,8 +123,10 @@ CLASS Z2UI5_CL_DEMO_APP_005 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(page) = view->shell(
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell(
         )->page(
                 title          = 'abap2UI5 - Selection-Screen more Controls'
                 navbuttonpress = client->_event( 'BACK' )
@@ -145,7 +171,8 @@ CLASS Z2UI5_CL_DEMO_APP_005 IMPLEMENTATION.
             number     = '3.5M'
             unit       = 'EUR' ).
 
-    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'layout' ).
+    DATA grid TYPE REF TO z2ui5_cl_xml_view.
+    grid = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
     grid->simple_form( title = 'More Controls' editable = abap_true )->content( 'form'
         )->label( 'ProgressIndicator'

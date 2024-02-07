@@ -83,11 +83,13 @@ CLASS Z2UI5_CL_DEMO_APP_145 IMPLEMENTATION.
   METHOD Z2UI5_ON_RENDERING.
 
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
     view->_generic( ns = `html` name = `style` )->_cc_plain_xml( z2ui5_cl_cc_imagemapster=>load_editor_css( ) ).
 
-    DATA(page) = view->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->page(
           showheader       = abap_true
             title          = 'abap2UI5 - imagemap editor demo'
             navbuttonpress = client->_event( 'BACK' )

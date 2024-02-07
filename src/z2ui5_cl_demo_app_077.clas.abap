@@ -38,7 +38,8 @@ CLASS Z2UI5_CL_DEMO_APP_077 DEFINITION
         value_map         TYPE ty_value_map,
       END OF ty_column_config.
 
-    DATA: mt_column_config TYPE STANDARD TABLE OF ty_column_config WITH EMPTY KEY.
+    TYPES temp1_7cbedbb9ba TYPE STANDARD TABLE OF ty_column_config WITH DEFAULT KEY.
+DATA: mt_column_config TYPE temp1_7cbedbb9ba.
     DATA: mv_column_config TYPE string.
 
     TYPES:
@@ -56,7 +57,7 @@ CLASS Z2UI5_CL_DEMO_APP_077 DEFINITION
         selected        TYPE abap_bool,
       END OF ty_s_tab .
     TYPES:
-      ty_t_table TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY .
+      ty_t_table TYPE STANDARD TABLE OF ty_s_tab WITH DEFAULT KEY .
     TYPES:
       BEGIN OF ty_s_filter_pop,
         option TYPE string,
@@ -124,32 +125,41 @@ CLASS Z2UI5_CL_DEMO_APP_077 IMPLEMENTATION.
 
   METHOD Z2UI5_on_init.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page1) = view->page( id = `page_main`
+    DATA page1 TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page1 = view->page( id = `page_main`
             title          = 'abap2UI5 - XLSX Export'
             navbuttonpress = client->_event( 'BACK' )
-            shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+            shownavbutton = temp1
             class = 'sapUiContentPadding' ).
 
     page1->header_content(
        )->link( text = 'Demo' target = '_blank' href = `https://twitter.com/abap2UI5/status/1683753816716345345`
        )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( ) ).
 
-    DATA(page) = page1->dynamic_page( headerexpanded = abap_true headerpinned = abap_true ).
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = page1->dynamic_page( headerexpanded = abap_true headerpinned = abap_true ).
 
-    DATA(header_title) = page->title( ns = 'f'  )->get( )->dynamic_page_title( ).
+    DATA header_title TYPE REF TO z2ui5_cl_xml_view.
+    header_title = page->title( ns = 'f'  )->get( )->dynamic_page_title( ).
     header_title->heading( ns = 'f' )->hbox( )->title( `Table XLSX Export` ).
     header_title->expanded_content( 'f' ).
     header_title->snapped_content( ns = 'f' ).
 
-    DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
+    DATA lo_box TYPE REF TO z2ui5_cl_xml_view.
+    lo_box = page->header( )->dynamic_page_header( pinnable = abap_true
          )->flex_box( alignitems = `Start` justifycontent = `SpaceBetween`
          )->flex_box( alignitems = `Start` ).
 
-    DATA(cont) = page->content( ns = 'f' ).
+    DATA cont TYPE REF TO z2ui5_cl_xml_view.
+    cont = page->content( ns = 'f' ).
 
-    DATA(tab) = cont->table(
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = cont->table(
               id = `exportTable`
               items = client->_bind( mt_table )
           )->header_toolbar(
@@ -195,24 +205,117 @@ CLASS Z2UI5_CL_DEMO_APP_077 IMPLEMENTATION.
 
   METHOD Z2UI5_set_data.
 
-    mt_table = VALUE #(
-        ( selkz = abap_false rowid = '1' product = 'table'    createdate = `01.01.2023` createby = `Olaf` storagelocation = `AREA_001` quantity = 400  meins = 'PC' price = '1000.50' waers = 'EUR' )
-        ( selkz = abap_false rowid = '2' product = 'chair'    createdate = `01.01.2022` createby = `Karlo` storagelocation = `AREA_001` quantity = 123   meins = 'PC' price = '2000.55' waers = 'USD')
-        ( selkz = abap_false rowid = '3' product = 'sofa'     createdate = `01.05.2021` createby = `Elin` storagelocation = `AREA_002` quantity = 700   meins = 'PC' price = '3000.11' waers = 'CNY' )
-        ( selkz = abap_false rowid = '4' product = 'computer' createdate = `27.01.2023` createby = `Theo` storagelocation = `AREA_002` quantity = 200  meins = 'EA' price = '4000.88' waers = 'USD' )
-        ( selkz = abap_false rowid = '5' product = 'printer'  createdate = `01.01.2023` createby = `Renate` storagelocation = `AREA_003` quantity = 90   meins = 'PC' price = '5000.47' waers = 'EUR')
-        ( selkz = abap_false rowid = '6' product = 'table2'   createdate = `01.01.2023` createby = `Angela` storagelocation = `AREA_003` quantity = 1110  meins = 'PC' price = '6000.33' waers = 'GBP' )
-    ).
+    DATA temp1 TYPE ty_t_table.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '1'.
+    temp2-product = 'table'.
+    temp2-createdate = `01.01.2023`.
+    temp2-createby = `Olaf`.
+    temp2-storagelocation = `AREA_001`.
+    temp2-quantity = 400.
+    temp2-meins = 'PC'.
+    temp2-price = '1000.50'.
+    temp2-waers = 'EUR'.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '2'.
+    temp2-product = 'chair'.
+    temp2-createdate = `01.01.2022`.
+    temp2-createby = `Karlo`.
+    temp2-storagelocation = `AREA_001`.
+    temp2-quantity = 123.
+    temp2-meins = 'PC'.
+    temp2-price = '2000.55'.
+    temp2-waers = 'USD'.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '3'.
+    temp2-product = 'sofa'.
+    temp2-createdate = `01.05.2021`.
+    temp2-createby = `Elin`.
+    temp2-storagelocation = `AREA_002`.
+    temp2-quantity = 700.
+    temp2-meins = 'PC'.
+    temp2-price = '3000.11'.
+    temp2-waers = 'CNY'.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '4'.
+    temp2-product = 'computer'.
+    temp2-createdate = `27.01.2023`.
+    temp2-createby = `Theo`.
+    temp2-storagelocation = `AREA_002`.
+    temp2-quantity = 200.
+    temp2-meins = 'EA'.
+    temp2-price = '4000.88'.
+    temp2-waers = 'USD'.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '5'.
+    temp2-product = 'printer'.
+    temp2-createdate = `01.01.2023`.
+    temp2-createby = `Renate`.
+    temp2-storagelocation = `AREA_003`.
+    temp2-quantity = 90.
+    temp2-meins = 'PC'.
+    temp2-price = '5000.47'.
+    temp2-waers = 'EUR'.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-selkz = abap_false.
+    temp2-rowid = '6'.
+    temp2-product = 'table2'.
+    temp2-createdate = `01.01.2023`.
+    temp2-createby = `Angela`.
+    temp2-storagelocation = `AREA_003`.
+    temp2-quantity = 1110.
+    temp2-meins = 'PC'.
+    temp2-price = '6000.33'.
+    temp2-waers = 'GBP'.
+    INSERT temp2 INTO TABLE temp1.
+    mt_table = temp1.
 
-    mt_column_config = VALUE #(
-      ( label = 'Index'    property = 'ROWID'           type = 'String' )
-      ( label = 'Product'  property = 'PRODUCT'         type = 'String' )
-      ( label = 'Date'     property = 'CREATEDATE'      type = 'String' )
-      ( label = 'Name'     property = 'CREATEBY'        type = 'String' )
-      ( label = 'Location' property = 'STORAGELOCATION' type = 'String' )
-      ( label = 'Quantity' property = 'QUANTITY'        type = 'Number' delimiter = abap_true )
-      ( label = 'Unit'     property = 'MEINS'           type = 'String' )
-      ( label = 'Price'    property = 'PRICE'           type = 'Currency' unit_property = 'WAERS' width = 14 scale = 2 ) ).
+    DATA temp3 LIKE mt_column_config.
+    CLEAR temp3.
+    DATA temp4 LIKE LINE OF temp3.
+    temp4-label = 'Index'.
+    temp4-property = 'ROWID'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Product'.
+    temp4-property = 'PRODUCT'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Date'.
+    temp4-property = 'CREATEDATE'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Name'.
+    temp4-property = 'CREATEBY'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Location'.
+    temp4-property = 'STORAGELOCATION'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Quantity'.
+    temp4-property = 'QUANTITY'.
+    temp4-type = 'Number'.
+    temp4-delimiter = abap_true.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Unit'.
+    temp4-property = 'MEINS'.
+    temp4-type = 'String'.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-label = 'Price'.
+    temp4-property = 'PRICE'.
+    temp4-type = 'Currency'.
+    temp4-unit_property = 'WAERS'.
+    temp4-width = 14.
+    temp4-scale = 2.
+    INSERT temp4 INTO TABLE temp3.
+    mt_column_config = temp3.
 
     mv_column_config =  /ui2/cl_json=>serialize(
                           data             = mt_column_config

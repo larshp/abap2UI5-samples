@@ -25,17 +25,24 @@ CLASS Z2UI5_CL_DEMO_APP_170 IMPLEMENTATION.
 
   METHOD SIMPLE_POPUP1.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
 
-    DATA(dialog) = popup->dialog( stretch = abap_true
+    DATA dialog TYPE REF TO z2ui5_cl_xml_view.
+    dialog = popup->dialog( stretch = abap_true
             afterclose = client->_event( 'BTN_OK_1ND' )
          )->content( ).
 
 *    DATA(content) = dialog->button( text = `Open 2nd popup` press = client->_event( 'GOTO_2ND' ) ).
-    DATA(content) = dialog->Icon_Tab_bar( selectedkey = client->_bind_edit( mv_selected_key )
+    DATA temp1 TYPE string_table.
+    CLEAR temp1.
+    INSERT `NavCon` INTO TABLE temp1.
+    INSERT `${$parameters>/selectedKey}` INTO TABLE temp1.
+    DATA content TYPE REF TO z2ui5_cl_xml_view.
+    content = dialog->Icon_Tab_bar( selectedkey = client->_bind_edit( mv_selected_key )
 *                                                  select = client->_event( `OnSelectIconTabBar` )
 *                                                  select = client->_event_client( val = 'NAV_CONTAINER_TO' t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
-                                                  select = client->_event_client( val = `POPUP_NAV_CONTAINER_TO` t_arg  = value #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
+                                                  select = client->_event_client( val = `POPUP_NAV_CONTAINER_TO` t_arg  = temp1 )
                                                   headermode = `Inline`
                                                   expanded = abap_true
                                                   expandable = abap_false
@@ -79,13 +86,16 @@ CLASS Z2UI5_CL_DEMO_APP_170 IMPLEMENTATION.
 
   METHOD SIMPLE_POPUP2.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
 
-    DATA(dialog) = popup->dialog(
+    DATA dialog TYPE REF TO z2ui5_cl_xml_view.
+    dialog = popup->dialog(
         afterclose = client->_event( 'BTN_OK_2ND' )
          )->content( ).
 
-    DATA(content) = dialog->label( text = 'this is a second popup' ).
+    DATA content TYPE REF TO z2ui5_cl_xml_view.
+    content = dialog->label( text = 'this is a second popup' ).
 
     dialog->get_parent( )->footer( )->overflow_toolbar(
                   )->toolbar_spacer(
@@ -101,12 +111,15 @@ CLASS Z2UI5_CL_DEMO_APP_170 IMPLEMENTATION.
 
   METHOD UI5_DISPLAY.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
         )->page(
                 title          = 'abap2UI5 - Popup To Popup'
                 navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'

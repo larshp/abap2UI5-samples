@@ -25,7 +25,7 @@ CLASS Z2UI5_CL_DEMO_APP_063 DEFINITION PUBLIC.
         game  TYPE string,
       END OF ty_S_game.
 
-    DATA mt_data TYPE STANDARD TABLE OF ty_S_game WITH EMPTY KEY.
+    DATA mt_data TYPE STANDARD TABLE OF ty_S_game WITH DEFAULT KEY.
 
     METHODS popup_display.
     METHODS popup_display_start.
@@ -62,10 +62,10 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
 
     Z2UI5_on_event( client ).
 
-    SELECT FROM Z2UI5_t_demo_01
-        FIELDS *
+    SELECT * FROM Z2UI5_t_demo_01
+
         WHERE name = 'TEST02'
-        INTO CORRESPONDING FIELDS OF TABLE @mt_data.
+        INTO CORRESPONDING FIELDS OF TABLE mt_data.
 
   ENDMETHOD.
 
@@ -80,7 +80,8 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
       WHEN 'BUTTON_CONFIRM'.
         client->popup_destroy( ).
 
-        DATA(game) = NEW Z2UI5_CL_DEMO_APP_064( ).
+        DATA game TYPE REF TO Z2UI5_CL_DEMO_APP_064.
+        CREATE OBJECT game TYPE Z2UI5_CL_DEMO_APP_064.
         game->mv_user = ms_popup_input-user.
         game->mv_game = ms_popup_input-name.
         client->nav_app_call( game ).
@@ -93,32 +94,46 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
         popup_display( ).
 
       WHEN 'BUTTON_DELETE'.
-        DATA(lt_entry) = mt_data.
+        DATA lt_entry LIKE mt_data.
+        lt_entry = mt_data.
         DELETE lt_entry WHERE selkz = abap_false.
 
-        LOOP AT lt_entry INTO DATA(ls_entry).
+        DATA ls_entry LIKE LINE OF lt_entry.
+        LOOP AT lt_entry INTO ls_entry.
           DELETE FROM Z2UI5_t_demo_01 WHERE
-              game = @ls_entry-game.
+              game = ls_entry-game.
         ENDLOOP.
         COMMIT WORK AND WAIT.
 
       WHEN 'JOIN'.
-        DATA(lt_arg) = client->get( )-t_event_arg.
-        ms_popup_start-name = lt_arg[ 1 ].
+        DATA lt_arg TYPE string_table.
+        lt_arg = client->get( )-t_event_arg.
+        DATA temp1 LIKE LINE OF lt_arg.
+        DATA temp2 LIKE sy-tabix.
+        temp2 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp1.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        ms_popup_start-name = temp1.
         popup_display_start( ).
         client->popup_destroy( ).
 
       WHEN 'BUTTON_START'.
         client->popup_destroy( ).
 
-        SELECT SINGLE FROM Z2UI5_t_demo_01
-        FIELDS *
+        DATA ls_data TYPE Z2UI5_t_demo_01.
+        SELECT * SINGLE FROM Z2UI5_t_demo_01
+
         WHERE
             name = 'TEST02' AND
-          game = @ms_popup_start-name
-        INTO @DATA(ls_data).
+          game = ms_popup_start-name
+        INTO ls_data.
 
-        game = cast #( client->get_app( ls_data-uuid ) ).
+        DATA temp3 TYPE undefined.
+        temp3 ?= client->get_app( ls_data-uuid ).
+        game = temp3.
         game->mv_user = ms_popup_start-user.
         client->nav_app_call( game ).
         RETURN.
@@ -133,7 +148,8 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
 
   METHOD Z2UI5_on_rendering.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
             title          = 'abap2UI5 - Games'
             navbuttonpress = client->_event( 'BACK' )
@@ -144,10 +160,12 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
              )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12'
+    DATA grid TYPE REF TO z2ui5_cl_xml_view.
+    grid = page->grid( 'L6 M12 S12'
         )->content( 'layout' ).
 
-    DATA(tab) = grid->table(
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = grid->table(
             items = client->_bind_edit( mt_data )
             mode  = 'MultiSelect'
         )->header_toolbar(
@@ -173,11 +191,14 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
             )->text( 'Action' )->get_parent(
      ).
 
+    DATA temp4 TYPE string_table.
+    CLEAR temp4.
+    INSERT `${GAME}` INTO TABLE temp4.
     tab->items( )->column_list_item( selected = '{SELKZ}'
       )->cells(
           )->text( text = '{GAME}'
           )->text( text = '{UUID}'
-          )->button( text = 'Join' press = client->_event( val = `JOIN` t_arg = VALUE #( ( `${GAME}` ) )  )
+          )->button( text = 'Join' press = client->_event( val = `JOIN` t_arg = temp4  )
 
            ).
 
@@ -188,7 +209,8 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
 
   METHOD popup_display.
 
-    DATA(popup) = Z2UI5_cl_xml_view=>factory_popup( )->dialog(
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = Z2UI5_cl_xml_view=>factory_popup( )->dialog(
           contentheight = '500px'
           contentwidth  = '500px'
           title = 'Title'
@@ -217,7 +239,8 @@ CLASS Z2UI5_CL_DEMO_APP_063 IMPLEMENTATION.
 
   METHOD popup_display_start.
 
-    DATA(popup) = Z2UI5_cl_xml_view=>factory_popup( )->dialog(
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = Z2UI5_cl_xml_view=>factory_popup( )->dialog(
           contentheight = '500px'
           contentwidth  = '500px'
           title = 'Title'

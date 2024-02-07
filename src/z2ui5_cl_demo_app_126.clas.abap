@@ -19,7 +19,9 @@ CLASS z2ui5_cl_demo_app_126 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    client->nav_app_leave( NEW lcl_demo_app_126( ) ).
+    DATA temp1 TYPE REF TO lcl_demo_app_126.
+    CREATE OBJECT temp1 TYPE lcl_demo_app_126.
+    client->nav_app_leave( temp1 ).
 
   ENDMETHOD.
 

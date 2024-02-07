@@ -28,15 +28,18 @@ CLASS Z2UI5_CL_DEMO_APP_093 IMPLEMENTATION.
 
 *      client->factory_view( )->_ns_html( )->script( )->zz_plain( `sap.z2ui5.myFunction();`).
 
-      DATA(view) = z2ui5_cl_xml_view=>factory( ).
+      DATA view TYPE REF TO z2ui5_cl_xml_view.
+      view = z2ui5_cl_xml_view=>factory( ).
 
       view->_generic( ns = `html` name = `script`)->_cc_plain_xml( `sap.z2ui5.myFunction();`).
 
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
       client->view_display( view->shell(
             )->page(
                     title          = 'abap2UI5 - First Example'
                     navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                    shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                    shownavbutton = temp1
                 )->header_content(
                     )->link(
                         text = 'Source_Code'

@@ -29,7 +29,8 @@ CLASS Z2UI5_CL_DEMO_APP_119 IMPLEMENTATION.
 
   METHOD view_main.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
     view->_generic( ns = `html` name = `style` )->_cc_plain_xml( z2ui5_cl_cc_driver_js=>get_css_local( ) ).
     view->_generic( ns = `html` name = `style` )->_cc_plain_xml( mv_custom_css ).
@@ -38,11 +39,13 @@ CLASS Z2UI5_CL_DEMO_APP_119 IMPLEMENTATION.
                                                     i_highlight_config        = ms_hightlight_config
                                                     i_highlight_driver_config = ms_hightlight_driver_config ) ).
 
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     client->view_display( view->shell(
           )->page(
                   title          = 'abap2UI5 - DriverJs'
                   navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                  shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                  shownavbutton = temp1
               )->header_content(
                   )->link(
                       text = 'Source_Code'

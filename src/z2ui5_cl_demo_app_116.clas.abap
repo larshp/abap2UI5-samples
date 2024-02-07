@@ -63,12 +63,15 @@ CLASS z2ui5_cl_demo_app_116 IMPLEMENTATION.
 
   METHOD display_demo_output.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     client->view_display( view->shell(
           )->page(
                   title          = 'abap2UI5 - if_oo_adt_classrun - TODO uncomment the code first'
                   navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                  shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                  shownavbutton = temp1
               )->header_content(
                   )->link(
                       text = 'Source_Code'

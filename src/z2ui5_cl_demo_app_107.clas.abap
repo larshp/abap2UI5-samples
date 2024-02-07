@@ -15,8 +15,9 @@ public section.
         url         TYPE string,
       END OF ty_items .
 
-  data:
-    mt_items TYPE TABLE OF ty_items WITH DEFAULT KEY .
+  TYPES temp1_c95e478acb TYPE TABLE OF ty_items WITH DEFAULT KEY.
+data:
+    mt_items TYPE temp1_c95e478acb .
   data MV_FILE_RAW type STRING .
   PROTECTED SECTION.
 
@@ -44,7 +45,8 @@ CLASS Z2UI5_CL_DEMO_APP_107 IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-      DATA(lv_script) = `` && |\n| &&
+      DATA lv_script TYPE string.
+      lv_script = `` && |\n| &&
                         `sap.z2ui5.fileGet = (oEvent,oController) => {` && |\n| &&
                         ` var oFileUploadComponent = oEvent.getParameters("items").item.getFileObject();` && |\n| &&
                         ` if (oFileUploadComponent) {` && |\n| &&
@@ -101,12 +103,16 @@ CLASS Z2UI5_CL_DEMO_APP_107 IMPLEMENTATION.
 
     client->_bind_edit( mv_file_raw ).
 
-    DATA(view) =  z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view =  z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = view->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    page = view->shell( )->page(
         title          = 'abap2UI5 - P13N Dialog'
         navbuttonpress = client->_event( 'BACK' )
-        shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+        shownavbutton = temp1
         class = 'sapUiContentPadding' ).
 
     page = page->upload_set( instantupload = abap_true

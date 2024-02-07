@@ -39,9 +39,9 @@ CLASS Z2UI5_CL_DEMO_APP_085 DEFINITION
         country      TYPE string,
       END OF ty_s_tab_supplier .
     TYPES:
-      ty_t_table          TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY .
+      ty_t_table          TYPE STANDARD TABLE OF ty_s_tab WITH DEFAULT KEY .
     TYPES:
-      ty_t_table_supplier TYPE STANDARD TABLE OF ty_s_tab_supplier WITH EMPTY KEY .
+      ty_t_table_supplier TYPE STANDARD TABLE OF ty_s_tab_supplier WITH DEFAULT KEY .
 
     DATA mt_table TYPE ty_t_table .
     DATA mt_table_supplier TYPE ty_t_table_supplier .
@@ -87,16 +87,19 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
   METHOD view_display_detail.
 
-    DATA(lo_view_nested) = z2ui5_cl_xml_view=>factory( ).
+    DATA lo_view_nested TYPE REF TO z2ui5_cl_xml_view.
+    lo_view_nested = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = lo_view_nested->object_page_layout(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = lo_view_nested->object_page_layout(
             showtitleinheadercontent = abap_true
             showeditheaderbutton     = abap_true
             editheaderbuttonpress    =  client->_event( 'EDIT_HEADER_PRESS' )
             uppercaseanchorbar       =  abap_false
         ).
 
-    DATA(header_title) = page->header_title(  )->object_page_dyn_header_title( ).
+    DATA header_title TYPE REF TO z2ui5_cl_xml_view.
+    header_title = page->header_title(  )->object_page_dyn_header_title( ).
 
     header_title->expanded_heading(
             )->hbox(
@@ -114,6 +117,20 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
     header_title->snapped_Content( ns = `uxap` )->text( client->_bind_local( val = ls_detail-productname  ) ).
     header_title->snapped_Title_On_Mobile( )->title(  client->_bind_local( val = ls_detail-productname )  ).
 
+    DATA temp1 TYPE string.
+    CASE lv_layout.
+      WHEN 'TwoColumnsMidExpanded'.
+        temp1 = 'false'.
+      WHEN 'MidColumnFullScreen'.
+        temp1 = 'true'.
+    ENDCASE.
+    DATA temp4 TYPE string.
+    CASE lv_layout.
+      WHEN 'TwoColumnsMidExpanded'.
+        temp4 = 'true'.
+      WHEN 'MidColumnFullScreen'.
+        temp4 = 'false'.
+    ENDCASE.
     header_title->actions( ns = `uxap` )->overflow_toolbar(
          )->overflow_toolbar_button(
              icon    = `sap-icon://supplier`
@@ -127,19 +144,13 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
              text    = 'Exit Fullscreen Mode'
              type    = 'Transparent'
              tooltip = 'Close Fullscreen Mode'
-             enabled  = SWITCH string( lv_layout
-                                        WHEN   'TwoColumnsMidExpanded' THEN 'false'
-                                        WHEN   'MidColumnFullScreen'   THEN 'true'
-                                         )
+             enabled  = temp1
              press = client->_event( 'ONEXITFULLSCREENMODE' )
           )->overflow_toolbar_button(
              icon    = `sap-icon://full-screen`
              text    = 'Enter Fullscreen Mode'
              type    = 'Transparent'
-             enabled  = SWITCH string( lv_layout
-                                        WHEN   'TwoColumnsMidExpanded' THEN 'true'
-                                        WHEN   'MidColumnFullScreen' THEN 'false'
-                                         )
+             enabled  = temp4
              tooltip = 'Fullscreen Mode'
              press = client->_event( 'ONFULLSCREENMODE' )
           )->overflow_toolbar_button(
@@ -151,7 +162,10 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
              press = client->_event( 'ONCLOSEDETAIL' )
          ).
 
-    DATA(header_content) = page->header_Content( ns = 'uxap').
+    DATA header_content TYPE REF TO z2ui5_cl_xml_view.
+    header_content = page->header_Content( ns = 'uxap').
+    DATA temp2 TYPE string.
+    temp2 = ls_detail-measure.
     header_content->flex_box( wrap = 'Wrap'
        )->avatar( src = c_pic_url && ls_detail-pic class = 'sapUiSmallMarginEnd' displaySize = 'layout'
         )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
@@ -163,7 +177,7 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
         )->get_parent(
         )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
             )->text( text    = | { ls_detail-width } x { ls_detail-depth } x { ls_detail-height } { ls_detail-dimunit }|
-            )->object_number( number = CONV string( ls_detail-measure ) unit =  ls_detail-unit state = ls_detail-state_measure
+            )->object_number( number = temp2 unit =  ls_detail-unit state = ls_detail-state_measure
             )->text( text = |{ ls_detail-price } { ls_detail-waers } |
 **            )->object_number( number = `{ parts: [ { path : 'PRICE' } , { path : 'WAERS' } ] } ` state = ls_detail-state_price
             )->vbox(
@@ -190,7 +204,8 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
         )->get_parent(
     ).
 
-    DATA(sections) = page->sections( ).
+    DATA sections TYPE REF TO z2ui5_cl_xml_view.
+    sections = page->sections( ).
 
     sections->object_page_section( titleuppercase = abap_false id = 'SectionDescription' title = 'Description'
         )->heading( ns = `uxap`
@@ -243,6 +258,9 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
 
 
+    DATA temp3 TYPE string_table.
+    CLEAR temp3.
+    INSERT `${SUPPLIERNAME}` INTO TABLE temp3.
     sections->object_page_section( titleuppercase = abap_false id = 'OtherSuppliers' title = 'Other Supplier'
      )->heading( ns = `uxap`
      )->get_parent(
@@ -270,7 +288,7 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
 
     )->items(
-        )->column_list_item( type = 'Navigation'  press = client->_event( val = `ONPRESSSUPPLIER` t_arg = VALUE #( ( `${SUPPLIERNAME}` ) ) )
+        )->column_list_item( type = 'Navigation'  press = client->_event( val = `ONPRESSSUPPLIER` t_arg = temp3 )
            )->cells(
              )->text( text = '{SUPPLIERNAME}' )->get_parent(
              )->text( text = '{COUNTRY}'
@@ -290,9 +308,11 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
 
   METHOD view_display_master.
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
 
-    DATA(page) = view->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    page = view->shell( )->page(
           title          = 'abap2UI5 - Master Detail'
           navbuttonpress = client->_event( 'BACK' )
             shownavbutton = abap_true
@@ -301,9 +321,11 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
              )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
          )->get_parent( ).
 
-    DATA(lr_master) = page->flexible_column_layout( layout = lv_layout id ='Detail' )->begin_column_pages( ).
+    DATA lr_master TYPE REF TO z2ui5_cl_xml_view.
+    lr_master = page->flexible_column_layout( layout = lv_layout id ='Detail' )->begin_column_pages( ).
 
-    DATA(tab) = lr_master->scroll_container( height = '100%' vertical = abap_true
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    tab = lr_master->scroll_container( height = '100%' vertical = abap_true
    )->table(
        inset = abap_false
        showSeparators = 'Inner'
@@ -332,8 +354,11 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
          )->column( hAlign = 'End'
             )->text( 'Price' ).
 
+    DATA temp5 TYPE string_table.
+    CLEAR temp5.
+    INSERT `${KEY}` INTO TABLE temp5.
     tab->items(
-        )->column_list_item( type = 'Navigation'  press = client->_event( val = `ONPRESSMASTER` t_arg = VALUE #( ( `${KEY}` ) ) )
+        )->column_list_item( type = 'Navigation'  press = client->_event( val = `ONPRESSMASTER` t_arg = temp5 )
            )->cells(
              )->object_identifier( text = '{PRODUCTNAME}' title =  '{PRODUCTID}' )->get_parent(
              )->text( text = '{SUPPLIERNAME}' )->get_parent(
@@ -375,7 +400,8 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 *    https://sapui5.hana.ondemand.com/sdk/#/topic/3b9f760da5b64adf8db7f95247879086
     CASE client->get( )-event.
       WHEN 'ONGOTOSUPPLIER' .
-        DATA(lo_app_next) = NEW Z2UI5_CL_DEMO_APP_086( ).
+        DATA lo_app_next TYPE REF TO Z2UI5_CL_DEMO_APP_086.
+        CREATE OBJECT lo_app_next TYPE Z2UI5_CL_DEMO_APP_086.
         lo_app_next->ls_detail_supplier = ls_detail_supplier.
         client->nav_app_call( lo_app_next ).
       WHEN 'ONEXITFULLSCREENMODE' .
@@ -398,16 +424,49 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
         client->nest_view_model_update( ).
         client->message_toast_display( |Event Close Detail | ).
       WHEN 'ONPRESSSUPPLIER'.
-        DATA(lt_arg) = client->get( )-t_event_arg.
-        READ TABLE mt_table_supplier WITH KEY suppliername = lt_arg[ 1 ] INTO ls_detail_supplier.
-        client->message_toast_display( |Event Press Supplier List Name: { lt_arg[ 1 ] } | ).
-        lo_app_next = NEW Z2UI5_CL_DEMO_APP_086( ).
+        DATA lt_arg TYPE string_table.
+        lt_arg = client->get( )-t_event_arg.
+        DATA temp7 LIKE LINE OF lt_arg.
+        DATA temp8 LIKE sy-tabix.
+        temp8 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp7.
+        sy-tabix = temp8.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        READ TABLE mt_table_supplier WITH KEY suppliername = temp7 INTO ls_detail_supplier.
+        DATA temp9 LIKE LINE OF lt_arg.
+        DATA temp10 LIKE sy-tabix.
+        temp10 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp9.
+        sy-tabix = temp10.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        client->message_toast_display( |Event Press Supplier List Name: { temp9 } | ).
+        CREATE OBJECT lo_app_next TYPE Z2UI5_CL_DEMO_APP_086.
         lo_app_next->ls_detail_supplier = ls_detail_supplier.
         client->nav_app_call( lo_app_next ).
       WHEN `ONPRESSMASTER`.
         lt_arg = client->get( )-t_event_arg.
-        client->message_toast_display( |Event Press Master - Product Id { lt_arg[ 1 ] } | ).
-        READ TABLE mt_table WITH KEY key = lt_arg[ 1 ] INTO ls_detail.
+        DATA temp11 LIKE LINE OF lt_arg.
+        DATA temp12 LIKE sy-tabix.
+        temp12 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp11.
+        sy-tabix = temp12.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        client->message_toast_display( |Event Press Master - Product Id { temp11 } | ).
+        DATA temp13 LIKE LINE OF lt_arg.
+        DATA temp14 LIKE sy-tabix.
+        temp14 = sy-tabix.
+        READ TABLE lt_arg INDEX 1 INTO temp13.
+        sy-tabix = temp14.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        READ TABLE mt_table WITH KEY key = temp13 INTO ls_detail.
         READ TABLE mt_table_supplier WITH KEY suppliername = ls_detail-suppliername INTO ls_detail_supplier.
         lv_layout = 'TwoColumnsMidExpanded'.
         IF check_detail_active = abap_false.
@@ -445,56 +504,319 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
 
   METHOD Z2UI5_set_data.
-    mt_table = VALUE #(
-        ( key = '1' Productid = '1' productname = 'table' suppliername = 'Company 1' Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 100  unit = 'ST' price = '1000.50' waers = 'EUR'  state_price = `Success` state_measure = `Warning`
-          Pic = 'HT-1010.jpg' rating = '0' process = '0' )
-        ( key = '2' Productid = '2' productname = 'chair' suppliername = 'Company 2'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 123   unit = 'ST' price = '2000.55' waers = 'USD' state_price = `Error` state_measure = `Error`
-          Pic = 'HT-2001.jpg' rating = '1'  process = '10' )
-        ( key = '3' Productid = '3' productname = 'sofa'  suppliername = 'Company 3'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure  = 700   unit = 'ST' price = '3000.11' waers = 'CNY' state_price = `Success` state_measure = `Warning`
-          Pic = 'HT-1251.jpg' rating = '2'  process = '15' )
-        ( key = '4' Productid = '4' productname = 'computer' suppliername = 'Company 4'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure  = 200  unit = 'ST' price = '4000.88' waers = 'USD' state_price = `Success` state_measure = `Success`
-          Pic = 'HT-6100.jpg' rating = '3'  process = '38' )
-        ( key = '5' Productid = '5' productname = 'printer' suppliername = 'Company 5'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure  = 90   unit = 'ST' price = '5000.47' waers = 'EUR' state_price = `Error` state_measure = `Warning`
-          Pic = 'HT-1000.jpg' rating = '4'  process = '66' )
-        ( key = '6' Productid = '6' productname = 'table2'  suppliername = 'Company 6'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Success` state_measure = `Information`
-          Pic = 'HT-1137.jpg' rating = '2'  process = '91' )
-        ( key = '7' Productid = '7' productname = 'table3'  suppliername = 'Company 7'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Success` state_measure = `Warning`
-          Pic = 'HT-7000.jpg' rating = '6' process = '5'  )
-        ( key = '8' Productid = '8' productname = 'table4'  suppliername = 'Company 8'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Warning` state_measure = `Error`
-          Pic = 'HT-9997.jpg' rating = '0' process = '75'  )
-        ( key = '9' Productid = '9' productname = 'table5'  suppliername = 'Company 9'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Information` state_measure = `Success`
-          Pic = 'HT-7020.jpg' rating = '1'  process = '81' )
-        ( key = '10' Productid = '10' productname = 'table6'  suppliername = 'Company 10'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Success` state_measure = `Information`
-          Pic = 'HT-1023.jpg' rating = '4'  process = '24' )
-        ( key = '11' Productid = '11' productname = 'table7'  suppliername = 'Company 11'  Width = '10' Depth = '20' Height = '30'
-          DimUnit = 'CM' Measure = 600  unit = 'ST' price = '6000.33' waers = 'GBP' state_price = `Information` state_measure = `Success`
-          Pic = 'HT-1085.jpg' rating = '5'  process = '46' ) ).
+    DATA temp15 TYPE ty_t_table.
+    CLEAR temp15.
+    DATA temp16 LIKE LINE OF temp15.
+    temp16-key = '1'.
+    temp16-Productid = '1'.
+    temp16-productname = 'table'.
+    temp16-suppliername = 'Company 1'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 100.
+    temp16-unit = 'ST'.
+    temp16-price = '1000.50'.
+    temp16-waers = 'EUR'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Warning`.
+    temp16-Pic = 'HT-1010.jpg'.
+    temp16-rating = '0'.
+    temp16-process = '0'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '2'.
+    temp16-Productid = '2'.
+    temp16-productname = 'chair'.
+    temp16-suppliername = 'Company 2'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 123.
+    temp16-unit = 'ST'.
+    temp16-price = '2000.55'.
+    temp16-waers = 'USD'.
+    temp16-state_price = `Error`.
+    temp16-state_measure = `Error`.
+    temp16-Pic = 'HT-2001.jpg'.
+    temp16-rating = '1'.
+    temp16-process = '10'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '3'.
+    temp16-Productid = '3'.
+    temp16-productname = 'sofa'.
+    temp16-suppliername = 'Company 3'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 700.
+    temp16-unit = 'ST'.
+    temp16-price = '3000.11'.
+    temp16-waers = 'CNY'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Warning`.
+    temp16-Pic = 'HT-1251.jpg'.
+    temp16-rating = '2'.
+    temp16-process = '15'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '4'.
+    temp16-Productid = '4'.
+    temp16-productname = 'computer'.
+    temp16-suppliername = 'Company 4'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 200.
+    temp16-unit = 'ST'.
+    temp16-price = '4000.88'.
+    temp16-waers = 'USD'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Success`.
+    temp16-Pic = 'HT-6100.jpg'.
+    temp16-rating = '3'.
+    temp16-process = '38'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '5'.
+    temp16-Productid = '5'.
+    temp16-productname = 'printer'.
+    temp16-suppliername = 'Company 5'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 90.
+    temp16-unit = 'ST'.
+    temp16-price = '5000.47'.
+    temp16-waers = 'EUR'.
+    temp16-state_price = `Error`.
+    temp16-state_measure = `Warning`.
+    temp16-Pic = 'HT-1000.jpg'.
+    temp16-rating = '4'.
+    temp16-process = '66'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '6'.
+    temp16-Productid = '6'.
+    temp16-productname = 'table2'.
+    temp16-suppliername = 'Company 6'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Information`.
+    temp16-Pic = 'HT-1137.jpg'.
+    temp16-rating = '2'.
+    temp16-process = '91'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '7'.
+    temp16-Productid = '7'.
+    temp16-productname = 'table3'.
+    temp16-suppliername = 'Company 7'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Warning`.
+    temp16-Pic = 'HT-7000.jpg'.
+    temp16-rating = '6'.
+    temp16-process = '5'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '8'.
+    temp16-Productid = '8'.
+    temp16-productname = 'table4'.
+    temp16-suppliername = 'Company 8'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Warning`.
+    temp16-state_measure = `Error`.
+    temp16-Pic = 'HT-9997.jpg'.
+    temp16-rating = '0'.
+    temp16-process = '75'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '9'.
+    temp16-Productid = '9'.
+    temp16-productname = 'table5'.
+    temp16-suppliername = 'Company 9'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Information`.
+    temp16-state_measure = `Success`.
+    temp16-Pic = 'HT-7020.jpg'.
+    temp16-rating = '1'.
+    temp16-process = '81'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '10'.
+    temp16-Productid = '10'.
+    temp16-productname = 'table6'.
+    temp16-suppliername = 'Company 10'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Success`.
+    temp16-state_measure = `Information`.
+    temp16-Pic = 'HT-1023.jpg'.
+    temp16-rating = '4'.
+    temp16-process = '24'.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-key = '11'.
+    temp16-Productid = '11'.
+    temp16-productname = 'table7'.
+    temp16-suppliername = 'Company 11'.
+    temp16-Width = '10'.
+    temp16-Depth = '20'.
+    temp16-Height = '30'.
+    temp16-DimUnit = 'CM'.
+    temp16-Measure = 600.
+    temp16-unit = 'ST'.
+    temp16-price = '6000.33'.
+    temp16-waers = 'GBP'.
+    temp16-state_price = `Information`.
+    temp16-state_measure = `Success`.
+    temp16-Pic = 'HT-1085.jpg'.
+    temp16-rating = '5'.
+    temp16-process = '46'.
+    INSERT temp16 INTO TABLE temp15.
+    mt_table = temp15.
 *Rungestraße 79-78, 18055 RostockMarktstraße, 03046 CottbusMarktpl. 1, 06108 Halle (Saale)
-    mt_table_supplier = VALUE #(
-         ( suppliername = 'Company 1' email = 'company1@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Dresden' street = 'Neumarkt' zipcode = '01067' )
-         ( suppliername = 'Company 2' email = 'company2@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Erfurt' street = 'Domplatz' zipcode = '99084' )
-         ( suppliername = 'Company 3' email = 'company3@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Suhl' street = 'Carl-Fiedler-Straße 58' zipcode = '98527' )
-         ( suppliername = 'Company 4' email = 'company4@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Hildburgheusen' street = 'Markt' zipcode = '98646' )
-         ( suppliername = 'Company 5' email = 'company5@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Sonneberg' street = 'Beethovenstraße 10' zipcode = '96515' )
-         ( suppliername = 'Company 6' email = 'company6@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Meiningen' street = 'Schloßplatz 1' zipcode = '98617' )
-         ( suppliername = 'Company 7' email = 'company7@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Leipzig' street = 'Pfaffendorfer Str. 29' zipcode = '04105' )
-         ( suppliername = 'Company 8' email = 'company8@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Magdeburg' street = 'Am Dom 1' zipcode = '39104' )
-         ( suppliername = 'Company 9' email = 'company9@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Schwerin' street = 'Lennéstraße 1' zipcode = '19053' )
-         ( suppliername = 'Company 10' email = 'company10@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Rostock' street = 'Rungestraße 79-78' zipcode = '18055' )
-         ( suppliername = 'Company 11' email = 'company11@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Cottbus' street = 'Marktstraße' zipcode = '03046' )
-         ( suppliername = 'Company 12' email = 'company12@sap.com' phone = '+49 1234567890' country = 'Germany' city = 'Halle (Saale)' street = 'Marktpl. 1' zipcode = '06108' ) ).
+    DATA temp17 TYPE ty_t_table_supplier.
+    CLEAR temp17.
+    DATA temp18 LIKE LINE OF temp17.
+    temp18-suppliername = 'Company 1'.
+    temp18-email = 'company1@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Dresden'.
+    temp18-street = 'Neumarkt'.
+    temp18-zipcode = '01067'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 2'.
+    temp18-email = 'company2@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Erfurt'.
+    temp18-street = 'Domplatz'.
+    temp18-zipcode = '99084'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 3'.
+    temp18-email = 'company3@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Suhl'.
+    temp18-street = 'Carl-Fiedler-Straße 58'.
+    temp18-zipcode = '98527'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 4'.
+    temp18-email = 'company4@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Hildburgheusen'.
+    temp18-street = 'Markt'.
+    temp18-zipcode = '98646'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 5'.
+    temp18-email = 'company5@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Sonneberg'.
+    temp18-street = 'Beethovenstraße 10'.
+    temp18-zipcode = '96515'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 6'.
+    temp18-email = 'company6@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Meiningen'.
+    temp18-street = 'Schloßplatz 1'.
+    temp18-zipcode = '98617'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 7'.
+    temp18-email = 'company7@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Leipzig'.
+    temp18-street = 'Pfaffendorfer Str. 29'.
+    temp18-zipcode = '04105'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 8'.
+    temp18-email = 'company8@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Magdeburg'.
+    temp18-street = 'Am Dom 1'.
+    temp18-zipcode = '39104'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 9'.
+    temp18-email = 'company9@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Schwerin'.
+    temp18-street = 'Lennéstraße 1'.
+    temp18-zipcode = '19053'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 10'.
+    temp18-email = 'company10@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Rostock'.
+    temp18-street = 'Rungestraße 79-78'.
+    temp18-zipcode = '18055'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 11'.
+    temp18-email = 'company11@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Cottbus'.
+    temp18-street = 'Marktstraße'.
+    temp18-zipcode = '03046'.
+    INSERT temp18 INTO TABLE temp17.
+    temp18-suppliername = 'Company 12'.
+    temp18-email = 'company12@sap.com'.
+    temp18-phone = '+49 1234567890'.
+    temp18-country = 'Germany'.
+    temp18-city = 'Halle (Saale)'.
+    temp18-street = 'Marktpl. 1'.
+    temp18-zipcode = '06108'.
+    INSERT temp18 INTO TABLE temp17.
+    mt_table_supplier = temp17.
 
-    ls_detail = mt_table[ 1 ].
+    DATA temp19 LIKE LINE OF mt_table.
+    DATA temp20 LIKE sy-tabix.
+    temp20 = sy-tabix.
+    READ TABLE mt_table INDEX 1 INTO temp19.
+    sy-tabix = temp20.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+    ENDIF.
+    ls_detail = temp19.
   ENDMETHOD.
 
 
@@ -502,11 +824,16 @@ CLASS Z2UI5_CL_DEMO_APP_085 IMPLEMENTATION.
 
     IF mv_search_value IS NOT INITIAL.
 
-      LOOP AT mt_table REFERENCE INTO DATA(lr_row).
-        DATA(lv_row) = ``.
-        DATA(lv_index) = 1.
+      DATA temp21 LIKE LINE OF mt_table.
+      DATA lr_row LIKE REF TO temp21.
+      LOOP AT mt_table REFERENCE INTO lr_row.
+        DATA lv_row TYPE string.
+        lv_row = ``.
+        DATA lv_index TYPE i.
+        lv_index = 1.
         DO.
-          ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
+          FIELD-SYMBOLS <field> TYPE any.
+          ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO <field>.
           IF sy-subrc <> 0.
             EXIT.
           ENDIF.

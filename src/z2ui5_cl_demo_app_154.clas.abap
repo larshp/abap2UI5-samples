@@ -26,14 +26,41 @@ CLASS z2ui5_cl_demo_app_154 IMPLEMENTATION.
 
       WHEN 'POPUP'.
 
-        DATA(lo_app) = z2ui5_cl_popup_messages=>factory( VALUE #(
-            ( message = 'An empty Report field causes an empty XML Message to be sent' type = 'E' id = 'MSG1' number = '001' )
-            ( message = 'Check was executed for wrong Scenario' type = 'E' id = 'MSG1' number = '002' )
-            ( message = 'Request was handled without errors' type = 'S' id = 'MSG1' number = '003' )
-            ( message = 'product activated' type = 'S' id = 'MSG4' number = '375' )
-            ( message = 'check the input values' type = 'W' id = 'MSG2' number = '375' )
-            ( message = 'product already in use' type = 'I' id = 'MSG2' number = '375' )
-       ) ).
+        DATA temp1 TYPE z2ui5_cl_popup_messages=>ty_t_msg.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-message = 'An empty Report field causes an empty XML Message to be sent'.
+        temp2-type = 'E'.
+        temp2-id = 'MSG1'.
+        temp2-number = '001'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-message = 'Check was executed for wrong Scenario'.
+        temp2-type = 'E'.
+        temp2-id = 'MSG1'.
+        temp2-number = '002'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-message = 'Request was handled without errors'.
+        temp2-type = 'S'.
+        temp2-id = 'MSG1'.
+        temp2-number = '003'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-message = 'product activated'.
+        temp2-type = 'S'.
+        temp2-id = 'MSG4'.
+        temp2-number = '375'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-message = 'check the input values'.
+        temp2-type = 'W'.
+        temp2-id = 'MSG2'.
+        temp2-number = '375'.
+        INSERT temp2 INTO TABLE temp1.
+        temp2-message = 'product already in use'.
+        temp2-type = 'I'.
+        temp2-id = 'MSG2'.
+        temp2-number = '375'.
+        INSERT temp2 INTO TABLE temp1.
+        DATA lo_app TYPE REF TO z2ui5_cl_popup_messages.
+        lo_app = z2ui5_cl_popup_messages=>factory( temp1 ).
         client->nav_app_call( lo_app ).
 
       WHEN 'BACK'.
@@ -46,12 +73,15 @@ CLASS z2ui5_cl_demo_app_154 IMPLEMENTATION.
 
   METHOD ui5_display.
 
-    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_xml_view.
+    view = z2ui5_cl_xml_view=>factory( ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ).
     view->shell(
         )->page(
                 title          = 'abap2UI5 - Popup Messages'
                 navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL )
+                shownavbutton = temp1
             )->header_content(
                 )->link(
                     text = 'Source_Code'
@@ -88,8 +118,12 @@ CLASS z2ui5_cl_demo_app_154 IMPLEMENTATION.
   METHOD ui5_callback.
 
     TRY.
-        DATA(lo_prev) = client->get_app( client->get(  )-s_draft-id_prev_app ).
-        DATA(lo_dummy) = CAST z2ui5_cl_popup_messages( lo_prev ).
+        DATA lo_prev TYPE REF TO z2ui5_if_app.
+        lo_prev = client->get_app( client->get(  )-s_draft-id_prev_app ).
+        DATA temp3 TYPE REF TO z2ui5_cl_popup_messages.
+        temp3 ?= lo_prev.
+        DATA lo_dummy LIKE temp3.
+        lo_dummy = temp3.
         client->message_box_display( `callback after popup messages` ).
       CATCH cx_root.
     ENDTRY.
